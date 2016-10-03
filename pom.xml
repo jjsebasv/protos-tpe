@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jbundle.util.webapp</groupId>
+    <artifactId>jbundle-util-webapp-reactor</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+  </parent>
+
+  <!-- Note: I include the version and groups in each pom, because they will become archetypes -->
+  <groupId>xmpp-proxy</groupId>
+  <artifactId>xmpp-proxy</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <packaging>bundle</packaging>	<!-- NOTE Should add companion war pom with sample web.xml file -->
+  <name>jbundle-util-webapp-proxy - proxy servlet</name>
+
+  <description>This project provides a template for a proxy servlet.
+   This servlet will forward requests to another site and return
+   the result as if it existed on your server.</description>
+   
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-Activator>${project.artifactId}.HttpServiceActivator</Bundle-Activator>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+  	  <groupId>org.jbundle.util.webapp</groupId>
+      <artifactId>org.jbundle.util.webapp.redirect</artifactId>
+  	  <version>1.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+	    <groupId>org.apache.httpcomponents</groupId>
+	    <artifactId>httpclient</artifactId>
+    </dependency>
+
+	<dependency>
+		<groupId>org.osgi</groupId>
+		<artifactId>org.osgi.core</artifactId>
+		<scope>provided</scope> <!-- This better be provided -->
+	</dependency>
+  </dependencies>
+
+</project>
