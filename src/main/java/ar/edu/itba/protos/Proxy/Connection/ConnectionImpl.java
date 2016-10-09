@@ -20,6 +20,8 @@ public class ConnectionImpl implements Connection {
     private SelectionKey clientKey;
     private SelectionKey serverKey;
 
+    private String serverName;
+
     public void endConnection() {
         if(this.clientChannel != null) {
             try {
@@ -35,6 +37,10 @@ public class ConnectionImpl implements Connection {
                 // TODO: catch this exception
             }
         }
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 
     public ByteBuffer getWriteBuffer() {
