@@ -6,7 +6,7 @@ import java.nio.channels.SelectionKey;
 /**
  * Created by sebastian on 10/3/16.
  */
-public interface CustomTCP {
+public interface DefaultTCP {
     void handleAccept(SelectionKey key)throws IOException;
     void handleRead(SelectionKey key) throws IOException;
     void handleWrite(SelectionKey key) throws IOException;
