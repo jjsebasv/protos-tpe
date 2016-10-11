@@ -4,25 +4,7 @@
     <bookmark url="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/TCPSelector.java" line="16" mnemonic="7" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2815dedb-f5fa-4d35-936b-058009f76d18" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_aalto_xml_0_9_11.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_codec_commons_codec_1_10.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_activation_activation_1_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_mail_mail_1_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__log4j_log4j_1_2_17.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_codehaus_woodstox_stax2_api_4_0_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Handshaker.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Proxy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.classpath" afterPath="$PROJECT_DIR$/.classpath" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.project" afterPath="$PROJECT_DIR$/.project" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.settings/org.eclipse.jdt.core.prefs" afterPath="$PROJECT_DIR$/.settings/org.eclipse.jdt.core.prefs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Connection/ConnectionImpl.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Connection/ConnectionImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/TCPSelector.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/TCPSelector.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/xmpp-proxy.iml" afterPath="$PROJECT_DIR$/xmpp-proxy.iml" />
-    </list>
+    <list default="true" id="2815dedb-f5fa-4d35-936b-058009f76d18" name="Default" comment="" />
     <ignored path="xmpp-proxy.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -951,6 +933,9 @@
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
   </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="2815dedb-f5fa-4d35-936b-058009f76d18" name="Default" comment="" />
@@ -959,16 +944,16 @@
       <option name="presentableId" value="Default" />
       <updated>1475531920764</updated>
       <workItem from="1475531928675" duration="3790000" />
-      <workItem from="1476023960985" duration="13481000" />
+      <workItem from="1476023960985" duration="14079000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17271000" />
+    <option name="totallyTimeSpent" value="17869000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
