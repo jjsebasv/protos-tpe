@@ -2,17 +2,24 @@ package ar.edu.itba.protos.Handlers;
 
 import ar.edu.itba.protos.Protocols.DefaultTCP;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
+import ar.edu.itba.protos.Stanza.Stanza;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by sebastian on 10/9/16.
  */
-public class XMPPHandler implements DefaultTCP {
+public class XMPPHandler extends DefaultHandler {
 
     /**
      * This are the Prosody Server configurations
@@ -22,6 +29,9 @@ public class XMPPHandler implements DefaultTCP {
      */
     private static final int CONNECT_PORT = 5228;
     private static final String CONNECT_SERVER = "protos-tpe";
+
+    public List<Stanza> stanzas = new LinkedList<>();;
+    public Stanza actualStanza = null;
 
 
     /*
@@ -45,6 +55,8 @@ public class XMPPHandler implements DefaultTCP {
         ConnectionImpl actualConecction = (ConnectionImpl) key.attachment();
         ByteBuffer readBuffer = actualConecction.getReadBuffer();
 
+        SocketChannel serverChannel = null;
+
         long bytesRead = clientChannel.read(readBuffer);
 
         // FIXME: Is the same if bytesRead is 0 and -1?
@@ -52,6 +64,21 @@ public class XMPPHandler implements DefaultTCP {
             clientChannel.close();
         } else {
             // TODO: Handle read
+            Runnable command = new Runnable() {
+                public void run() {
+                    try {
+                        if (bytesRead > 0) {
+                            actualConecction.process(bytesRead, clientChannel, readBuffer);
+                        } else if (bytesRead == -1) {
+                            key.cancel();
+                        }
+                    } catch (Exception e) {
+                        // FIXME: This should be in a logger
+                        System.out.println("Error when reading");
+                        key.cancel();
+                    }
+                }
+            };
         }
 
     }
@@ -69,4 +96,9 @@ public class XMPPHandler implements DefaultTCP {
             actualConnection.endConnection();
         }
     }
+
+    /*
+     * Private Functions
+     */
+
 }
