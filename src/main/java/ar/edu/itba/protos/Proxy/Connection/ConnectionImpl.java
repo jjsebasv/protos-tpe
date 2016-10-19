@@ -141,12 +141,12 @@ public class ConnectionImpl implements Connection {
         String xmlString = new String(xmlStream.array());
         xmlString = xmlString.substring(0, xmlStream.position());
         List<String> messages = new ArrayList<>();
+        List<Stanza> streamList = new LinkedList<Stanza>();
 
         if (xmlString.contains("<stream:")) {
             // FIXME: What other types we could have?
             Stanza s = new Stanza("message", null);
             s.setXml(xmlString);
-            List<Stanza> streamList = new LinkedList<Stanza>();
             streamList.add(s);
             return streamList;
         } else {
@@ -189,5 +189,6 @@ public class ConnectionImpl implements Connection {
                 System.out.println(e);
             }
         }
+        return streamList;
     }
 }

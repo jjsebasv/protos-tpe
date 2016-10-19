@@ -2,6 +2,7 @@ package ar.edu.itba.protos.Proxy.Filters;
 
 /**
  * Created by sebastian on 10/16/16.
+ * Leet conversor
  */
 public class Conversor {
 
