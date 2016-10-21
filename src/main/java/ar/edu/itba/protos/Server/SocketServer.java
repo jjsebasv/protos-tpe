@@ -2,6 +2,7 @@
 
 package ar.edu.itba.protos.Server;
 
+import ar.edu.itba.protos.Handlers.XMPPHandler;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 
 import java.io.IOException;
@@ -15,6 +16,10 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
+import org.jsoup.*;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
+
 /**
  * Created by sebastian on 10/18/16.
  */
@@ -23,7 +28,7 @@ public class SocketServer {
     private Selector selector;
     private InetSocketAddress listenAddress;
     private SocketChannel clientOfXmppServer;
-    private SocketChannel adiumChannel;
+    private SocketChannel pidginChannel;
 
     public static void main(String[] args) throws Exception {
         Runnable server = new Runnable() {
@@ -83,8 +88,42 @@ public class SocketServer {
         }
     }
 
+    // **************************************
+    // ************** ADAPTION **************
+
+    XMPPHandler xmppHandler = new XMPPHandler();
+
+    private void accept(SelectionKey key) throws IOException{
+        System.out.println("El seletor de la key: " + key.selector());
+        pidginChannel = xmppHandler.handleAccept(key);
+    }
+
+    private void read1(SelectionKey key) throws IOException {
+        System.out.println("Comienzo a leer");
+
+        String stringRead = xmppHandler.handleRead(key);
+        System.out.println("Got: " + stringRead);
+
+        if ((SocketChannel) key.channel() == clientOfXmppServer) {
+            sendToClient(stringRead, pidginChannel);
+        } else {
+            sendToXmppServer(stringRead);
+        }
+    }
+
+    private void writeInChannelAdapted(String s, SocketChannel channel) {
+        try {
+            SelectionKey key = channel.register(this.selector, SelectionKey.OP_WRITE);
+            xmppHandler.handleWrite(key, s);
+        } catch (Exception e) {
+            System.out.println("error");
+        }
+    }
+
+    // **************************************
+
     //accept a connection made to this channel's socket
-    private void accept(SelectionKey key) throws IOException {
+    private void accept1(SelectionKey key) throws IOException {
         ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
         SocketChannel channel = serverChannel.accept();
         channel.configureBlocking(false);
@@ -94,7 +133,8 @@ public class SocketServer {
 
         // register channel with selector for further IO
         channel.register(this.selector, SelectionKey.OP_READ);
-        adiumChannel = channel;
+
+        pidginChannel = channel;
     }
 
     //read from the socket channel
@@ -117,10 +157,18 @@ public class SocketServer {
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
 
         String stringRead = new String(data);
+
+        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
+        if(doc != null && doc.body() != null) {
+            stringRead = doc.text(Conversor.apply(doc.text()).toString()).toString();
+        }
+
+
+
         System.out.println("Got: " + stringRead);
 
         if (channel == clientOfXmppServer) {
-            sendToClient(stringRead, adiumChannel);
+            sendToClient(stringRead, pidginChannel);
         } else {
             sendToXmppServer(stringRead);
         }

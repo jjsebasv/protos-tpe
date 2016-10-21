@@ -24,10 +24,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.text.html.parser.Parser;
+
+
 /**
  * Created by sebastian on 10/9/16.
  */
 public class ConnectionImpl implements Connection {
+
+    final String TO_CLIENT_INVALID_XML = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>";
 
     private SocketChannel clientChannel;
     private SocketChannel serverChannel;
@@ -107,32 +112,49 @@ public class ConnectionImpl implements Connection {
         this.serverChannel = channel;
     }
 
-    public void process(long bytesRead, SocketChannel channel, ByteBuffer byteBuffer) {
-        if (bytesRead > 0) {
-            List<Stanza> stanzaList = null;
-            parseStream(byteBuffer);
+    public String getServerName() { return this.serverName; }
 
+    public String process(long bytesRead, SocketChannel channel, ByteBuffer byteBuffer) {
+        System.out.println("En el process " + bytesRead);
+        if (bytesRead > 0) {
+            System.out.println(bytesRead);
+            List<Stanza> stanzaList = null;
+            System.out.println(byteBuffer.toString());
+            try {
+                this.clientName = channel.getLocalAddress().toString();
+                this.serverName = channel.getRemoteAddress().toString();
+            } catch (IOException e) {
+                System.out.println("ERROR");
+            }
+
+            stanzaList = parseStream(byteBuffer);
             for (Stanza stanza : stanzaList) {
+                System.out.println("Hay elemento en el for");
                 if (stanza.getElement() != null) {
                     if (stanza.getElement().getFrom() == null) {
                         stanza.getElement().setFrom(this.clientName + '@' + this.serverName);
                     }
                 }
-
-                Message msg = (Message) stanza.getElement();
+                System.out.println(stanza.isAccepted());
+                String msg = stanza.getXml();
+                System.out.println("ESTE ES EL MENSAJE " + msg);
+                return msg;
+                /*
                 boolean rejected = !stanza.isAccepted();
-
+                System.out.println("Y esto que es?? " + ((Message) stanza.getElement()).getContent());
                 if (rejected)
                     // TODO: Handle rejected
 
                     if (!rejected) {
+
                         if (((Message) stanza.getElement()).getContent() != null) {
                             // TODO: Send message to end point
                         }
                     }
-
+                */
             }
         }
+        return TO_CLIENT_INVALID_XML;
     }
 
     // Private functions
@@ -142,7 +164,7 @@ public class ConnectionImpl implements Connection {
         xmlString = xmlString.substring(0, xmlStream.position());
         List<String> messages = new ArrayList<>();
         List<Stanza> streamList = new LinkedList<Stanza>();
-
+        System.out.println("estamos en el parser");
         if (xmlString.contains("<stream:")) {
             // FIXME: What other types we could have?
             Stanza s = new Stanza("message", null);

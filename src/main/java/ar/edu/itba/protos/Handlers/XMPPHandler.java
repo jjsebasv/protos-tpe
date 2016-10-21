@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -41,34 +42,60 @@ public class XMPPHandler extends DefaultHandler {
      * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
      * Therefore we will have to check if the returned SocketChannel is null.
      */
-    public void handleAccept(SelectionKey key) throws IOException {
-        SocketChannel clientChannel = ((ServerSocketChannel)key.channel()).accept();
+    public SocketChannel handleAccept(SelectionKey key) throws IOException {
+        ConnectionImpl actualConnection = new ConnectionImpl();
+
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+        SocketChannel clientChannel = serverSocketChannel.accept();
+
+        Socket socket = clientChannel.socket();
+        // FIXME: This should be logged
+        System.out.println("Connected to: " + socket.getRemoteSocketAddress());
+
+
         clientChannel.configureBlocking(false);
 
-        ConnectionImpl actualConnection = new ConnectionImpl();
         actualConnection.setClientChannel(clientChannel);
-        clientChannel.register(key.selector(), SelectionKey.OP_ACCEPT, actualConnection);
+        actualConnection.setReadBuffer(ByteBuffer.allocate(1025*100));
+        // Why does it doesn't accept OP_ACCEPT
+        clientChannel.register(key.selector(), SelectionKey.OP_READ, actualConnection);
+
+        return clientChannel;
     }
 
-    public void handleRead(SelectionKey key) throws IOException {
+    public String handleRead(SelectionKey key) throws IOException {
         SocketChannel clientChannel = (SocketChannel) key.channel();
-        ConnectionImpl actualConecction = (ConnectionImpl) key.attachment();
-        ByteBuffer readBuffer = actualConecction.getReadBuffer();
+        ConnectionImpl actualConnection;
+        if(key.attachment() != null) {
+            actualConnection = (ConnectionImpl) key.attachment();
+        } else {
+            actualConnection = new ConnectionImpl();
+        }
 
-        SocketChannel serverChannel = null;
+        System.out.println("--> " + key.attachment());
+        ByteBuffer readBuffer = ByteBuffer.allocate(1024*100);
 
         long bytesRead = clientChannel.read(readBuffer);
 
         // FIXME: Is the same if bytesRead is 0 and -1?
         if(bytesRead == -1) {
             clientChannel.close();
+            return "error";
         } else {
+            System.out.println("esto aca en el HANDLE READ");
+
+            String answer = actualConnection.process(bytesRead, clientChannel, readBuffer);
+            System.out.println(answer);
+            return answer;
+            /*
             // TODO: Handle read
             Runnable command = new Runnable() {
                 public void run() {
+                    System.out.println("Entre en el run");
                     try {
                         if (bytesRead > 0) {
-                            actualConecction.process(bytesRead, clientChannel, readBuffer);
+                            final String answer = actualConecction.process(bytesRead, clientChannel,readBuffer);
+                            actualConecction.setServerName(answer);
                         } else if (bytesRead == -1) {
                             key.cancel();
                         }
@@ -79,19 +106,24 @@ public class XMPPHandler extends DefaultHandler {
                     }
                 }
             };
+            new Thread(command).start();
+            */
         }
-
     }
 
-    public void handleWrite(SelectionKey key) throws IOException {
+    public void handleWrite(SelectionKey key, String s) throws IOException {
         SocketChannel clientChannel = (SocketChannel)key.channel();
         ConnectionImpl actualConnection = (ConnectionImpl) key.attachment();
-        ByteBuffer writeBuffer = actualConnection.getWriteBuffer();
+        ByteBuffer writeBuffer = ByteBuffer.wrap(s.getBytes());
         long writtenBytes;
 
         if(clientChannel.isOpen()) {
             writtenBytes = clientChannel.write(writeBuffer);
             // TODO: Handle write
+
+            System.out.println("Escribiendo al  xmpp..");
+            writeBuffer.clear();
+
         } else {
             actualConnection.endConnection();
         }
