@@ -16,8 +16,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,6 +36,8 @@ public class ConnectionImpl implements Connection {
 
     final String TO_CLIENT_INVALID_XML = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>";
 
+    private Selector selector;
+
     private SocketChannel clientChannel;
     private SocketChannel serverChannel;
 
@@ -46,6 +50,10 @@ public class ConnectionImpl implements Connection {
     private String serverName;
     private String clientName;
 
+    private boolean applyLeet = false;
+
+    public ByteBuffer onlyBuffer;
+
     // Client Streams
     protected static final String INITIAL_STREAM = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0' ";
 
@@ -54,6 +62,10 @@ public class ConnectionImpl implements Connection {
             .getBytes();
     protected static final byte[] NEGOTIATION = ("<stream:features><mechanisms xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\"><mechanism>PLAIN</mechanism></mechanisms><auth xmlns=\"http://jabber.org/features/iq-auth\"/></stream:features>")
             .getBytes();
+
+    public ConnectionImpl (Selector selector) {
+        this.selector = selector;
+    }
 
     public void endConnection() {
         if(this.clientChannel != null) {
@@ -100,6 +112,10 @@ public class ConnectionImpl implements Connection {
         return this.clientKey;
     }
 
+    public void setClientKey(SelectionKey key) {
+        this.clientKey = key;
+    }
+
     public SelectionKey getServerKey() {
         return this.serverKey;
     }
@@ -108,11 +124,56 @@ public class ConnectionImpl implements Connection {
         this.clientChannel = channel;
     }
 
+    public SocketChannel getClientChannel() {
+        return this.clientChannel;
+    }
+
+    public SocketChannel getServerChannel() { return this.serverChannel; }
+
     public void setServerChannel(SocketChannel channel) {
         this.serverChannel = channel;
     }
 
     public String getServerName() { return this.serverName; }
+
+    public void enableLeet() { this.applyLeet = true; }
+
+    public void disableLeet() { this.applyLeet = false; }
+
+    public boolean applyLeet() {return this.applyLeet; }
+
+    public Selector getSelector() { return this.selector; }
+
+    public void processWrite(String message, String toWhom) {
+        SocketChannel channel;
+        switch (toWhom) {
+            case "server":
+                channel = this.serverChannel;
+                break;
+            // default is toWhom == "client"
+            default:
+                channel = this.clientChannel;
+                break;
+        }
+
+        this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
+
+        try {
+            channel.write(this.onlyBuffer);
+        } catch (IOException e) {
+            // TODO: Handle Exception and log it
+            System.out.println("Error while writing");
+            System.out.println(e);
+        }
+
+        // TODO: logger
+        System.out.println("Writing to " + toWhom);
+        this.onlyBuffer.clear();
+
+    }
+
+
+
 
     public String process(long bytesRead, SocketChannel channel, ByteBuffer byteBuffer) {
         System.out.println("En el process " + bytesRead);
@@ -193,7 +254,7 @@ public class ConnectionImpl implements Connection {
             SAXParser saxParser;
             try {
                 saxParser = factory.newSAXParser();
-                XMPPHandler handler = new XMPPHandler();
+                XMPPHandler handler = new XMPPHandler(Selector.open());
                 saxParser.parse(is, handler);
                 if (handler.actualStanza == null || !handler.actualStanza.isCompleted()) {
                     // TODO: hanlde incomplete elements
