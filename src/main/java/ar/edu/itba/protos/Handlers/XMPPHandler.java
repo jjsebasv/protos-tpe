@@ -1,5 +1,6 @@
 package ar.edu.itba.protos.Handlers;
 
+import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Protocols.DefaultTCP;
 import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
@@ -50,6 +51,8 @@ public class XMPPHandler extends DefaultHandler {
     private ConnectionImpl actualConnection;
 
     Map<SocketAddress, ConnectionImpl> connections = new HashMap<>();
+    XmppLogger logger = XmppLogger.getInstance();
+
 
     public XMPPHandler(Selector selector) {
         this.actualConnection = new ConnectionImpl(selector);
@@ -70,7 +73,7 @@ public class XMPPHandler extends DefaultHandler {
         Socket socket = clientChannel.socket();
 
         // FIXME: This should be logged
-        System.out.println("Connected to: " + socket.getRemoteSocketAddress());
+        logger.info("Connected to: " + socket.getRemoteSocketAddress());
 
         clientChannel.configureBlocking(false);
 
@@ -94,8 +97,7 @@ public class XMPPHandler extends DefaultHandler {
 
         // TODO: What's the difference bet 0 and 1?
         if (read == -1) {
-            // TODO: Log
-            System.out.println("Connection clossed by " + channel.socket().getRemoteSocketAddress());
+            logger.info("Connection clossed by " + channel.socket().getRemoteSocketAddress());
             channel.close();
             key.cancel();
             return;
@@ -106,8 +108,7 @@ public class XMPPHandler extends DefaultHandler {
         String stringRead = new String(data);
         String toSendString = stringRead;
 
-        // TODO: Log
-        System.out.println("Message received: " + stringRead);
+        logger.info("Message received: " + stringRead);
         if(this.actualConnection.applyLeet()) {
             Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
             // TODO: We should use Stanzas here
@@ -148,8 +149,7 @@ public class XMPPHandler extends DefaultHandler {
                 sendToServer(message);
             }
         } catch (IOException e) {
-            // TODO: log
-            System.out.println("Error found in sending message");
+            logger.error("Error found in sending message");
         }
 
     }
