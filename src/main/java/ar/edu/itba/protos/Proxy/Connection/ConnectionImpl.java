@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.Proxy.Connection;
 
 import ar.edu.itba.protos.Handlers.XMPPHandler;
+import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Elements.Message;
 import ar.edu.itba.protos.Stanza.Stanza;
 import org.xml.sax.SAXException;
@@ -53,6 +54,8 @@ public class ConnectionImpl implements Connection {
     private boolean applyLeet = false;
 
     public ByteBuffer onlyBuffer;
+
+    private XmppLogger logger = XmppLogger.getInstance();
 
     // Client Streams
     protected static final String INITIAL_STREAM = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0' ";
@@ -162,12 +165,11 @@ public class ConnectionImpl implements Connection {
             channel.write(this.onlyBuffer);
         } catch (IOException e) {
             // TODO: Handle Exception and log it
-            System.out.println("Error while writing");
+            logger.error("Error while writing");
             System.out.println(e);
         }
 
-        // TODO: logger
-        System.out.println("Writing to " + toWhom);
+        logger.info("Writing to " + toWhom);
         this.onlyBuffer.clear();
 
     }
