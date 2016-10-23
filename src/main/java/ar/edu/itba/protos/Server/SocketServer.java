@@ -90,13 +90,13 @@ public class SocketServer {
                 // FIXME: Check for different connections
                 if (key.isAcceptable()) {
                     this.accept(key);
-                    this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
-                    System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
+                    //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
+                    //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
                 }
                 else if (key.isReadable()) {
-                    System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
-                    this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
-                    //this.read(key);
+                    //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
+                    //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
+                    xmppHandler.read(key);
                 }
             }
         }
