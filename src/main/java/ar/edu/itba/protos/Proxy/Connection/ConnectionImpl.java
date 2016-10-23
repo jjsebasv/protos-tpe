@@ -16,18 +16,27 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.text.html.parser.Parser;
+
+
 /**
  * Created by sebastian on 10/9/16.
  */
 public class ConnectionImpl implements Connection {
+
+    final String TO_CLIENT_INVALID_XML = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>";
+
+    private Selector selector;
 
     private SocketChannel clientChannel;
     private SocketChannel serverChannel;
@@ -41,6 +50,10 @@ public class ConnectionImpl implements Connection {
     private String serverName;
     private String clientName;
 
+    private boolean applyLeet = false;
+
+    public ByteBuffer onlyBuffer;
+
     // Client Streams
     protected static final String INITIAL_STREAM = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0' ";
 
@@ -49,6 +62,10 @@ public class ConnectionImpl implements Connection {
             .getBytes();
     protected static final byte[] NEGOTIATION = ("<stream:features><mechanisms xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\"><mechanism>PLAIN</mechanism></mechanisms><auth xmlns=\"http://jabber.org/features/iq-auth\"/></stream:features>")
             .getBytes();
+
+    public ConnectionImpl (Selector selector) {
+        this.selector = selector;
+    }
 
     public void endConnection() {
         if(this.clientChannel != null) {
@@ -95,6 +112,10 @@ public class ConnectionImpl implements Connection {
         return this.clientKey;
     }
 
+    public void setClientKey(SelectionKey key) {
+        this.clientKey = key;
+    }
+
     public SelectionKey getServerKey() {
         return this.serverKey;
     }
@@ -103,36 +124,98 @@ public class ConnectionImpl implements Connection {
         this.clientChannel = channel;
     }
 
+    public SocketChannel getClientChannel() {
+        return this.clientChannel;
+    }
+
+    public SocketChannel getServerChannel() { return this.serverChannel; }
+
     public void setServerChannel(SocketChannel channel) {
         this.serverChannel = channel;
     }
 
-    public void process(long bytesRead, SocketChannel channel, ByteBuffer byteBuffer) {
-        if (bytesRead > 0) {
-            List<Stanza> stanzaList = null;
-            parseStream(byteBuffer);
+    public String getServerName() { return this.serverName; }
 
+    public void enableLeet() { this.applyLeet = true; }
+
+    public void disableLeet() { this.applyLeet = false; }
+
+    public boolean applyLeet() {return this.applyLeet; }
+
+    public Selector getSelector() { return this.selector; }
+
+    public void processWrite(String message, String toWhom) {
+        SocketChannel channel;
+        switch (toWhom) {
+            case "server":
+                channel = this.serverChannel;
+                break;
+            // default is toWhom == "client"
+            default:
+                channel = this.clientChannel;
+                break;
+        }
+
+        this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
+
+        try {
+            channel.write(this.onlyBuffer);
+        } catch (IOException e) {
+            // TODO: Handle Exception and log it
+            System.out.println("Error while writing");
+            System.out.println(e);
+        }
+
+        // TODO: logger
+        System.out.println("Writing to " + toWhom);
+        this.onlyBuffer.clear();
+
+    }
+
+
+
+
+    public String process(long bytesRead, SocketChannel channel, ByteBuffer byteBuffer) {
+        System.out.println("En el process " + bytesRead);
+        if (bytesRead > 0) {
+            System.out.println(bytesRead);
+            List<Stanza> stanzaList = null;
+            System.out.println(byteBuffer.toString());
+            try {
+                this.clientName = channel.getLocalAddress().toString();
+                this.serverName = channel.getRemoteAddress().toString();
+            } catch (IOException e) {
+                System.out.println("ERROR");
+            }
+
+            stanzaList = parseStream(byteBuffer);
             for (Stanza stanza : stanzaList) {
+                System.out.println("Hay elemento en el for");
                 if (stanza.getElement() != null) {
                     if (stanza.getElement().getFrom() == null) {
                         stanza.getElement().setFrom(this.clientName + '@' + this.serverName);
                     }
                 }
-
-                Message msg = (Message) stanza.getElement();
+                System.out.println(stanza.isAccepted());
+                String msg = stanza.getXml();
+                System.out.println("ESTE ES EL MENSAJE " + msg);
+                return msg;
+                /*
                 boolean rejected = !stanza.isAccepted();
-
+                System.out.println("Y esto que es?? " + ((Message) stanza.getElement()).getContent());
                 if (rejected)
                     // TODO: Handle rejected
 
                     if (!rejected) {
+
                         if (((Message) stanza.getElement()).getContent() != null) {
                             // TODO: Send message to end point
                         }
                     }
-
+                */
             }
         }
+        return TO_CLIENT_INVALID_XML;
     }
 
     // Private functions
@@ -142,7 +225,7 @@ public class ConnectionImpl implements Connection {
         xmlString = xmlString.substring(0, xmlStream.position());
         List<String> messages = new ArrayList<>();
         List<Stanza> streamList = new LinkedList<Stanza>();
-
+        System.out.println("estamos en el parser");
         if (xmlString.contains("<stream:")) {
             // FIXME: What other types we could have?
             Stanza s = new Stanza("message", null);
@@ -171,7 +254,7 @@ public class ConnectionImpl implements Connection {
             SAXParser saxParser;
             try {
                 saxParser = factory.newSAXParser();
-                XMPPHandler handler = new XMPPHandler();
+                XMPPHandler handler = new XMPPHandler(Selector.open());
                 saxParser.parse(is, handler);
                 if (handler.actualStanza == null || !handler.actualStanza.isCompleted()) {
                     // TODO: hanlde incomplete elements

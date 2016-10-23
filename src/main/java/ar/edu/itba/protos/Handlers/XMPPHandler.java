@@ -1,20 +1,32 @@
 package ar.edu.itba.protos.Handlers;
 
 import ar.edu.itba.protos.Protocols.DefaultTCP;
+import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
+import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Stanza.Stanza;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by sebastian on 10/9/16.
@@ -30,9 +42,18 @@ public class XMPPHandler extends DefaultHandler {
     private static final int CONNECT_PORT = 5228;
     private static final String CONNECT_SERVER = "protos-tpe";
 
+    private static final int DEFAULT_BUFFER_SIZE = 1024*100;
+
     public List<Stanza> stanzas = new LinkedList<>();;
     public Stanza actualStanza = null;
 
+    private ConnectionImpl actualConnection;
+
+    Map<SocketAddress, ConnectionImpl> connections = new HashMap<>();
+
+    public XMPPHandler(Selector selector) {
+        this.actualConnection = new ConnectionImpl(selector);
+    }
 
     /*
      * Why do we configureBlocking(false)?
@@ -41,64 +62,96 @@ public class XMPPHandler extends DefaultHandler {
      * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
      * Therefore we will have to check if the returned SocketChannel is null.
      */
-    public void handleAccept(SelectionKey key) throws IOException {
-        SocketChannel clientChannel = ((ServerSocketChannel)key.channel()).accept();
+    public Connection handleAccept(SelectionKey key) throws IOException {
+        System.out.println("TESTER: " +  ((ServerSocketChannel)key.channel()).socket().getLocalSocketAddress());
+
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+        SocketChannel clientChannel = serverSocketChannel.accept();
+        Socket socket = clientChannel.socket();
+
+        // FIXME: This should be logged
+        System.out.println("Connected to: " + socket.getRemoteSocketAddress());
+
         clientChannel.configureBlocking(false);
 
-        ConnectionImpl actualConnection = new ConnectionImpl();
-        actualConnection.setClientChannel(clientChannel);
-        clientChannel.register(key.selector(), SelectionKey.OP_ACCEPT, actualConnection);
+        // Why does it doesn't accept OP_ACCEPT
+        clientChannel.register(key.selector(), SelectionKey.OP_READ, this.actualConnection);
+
+        this.actualConnection.setClientChannel(clientChannel);
+        this.actualConnection.setClientKey(key);
+
+        return actualConnection;
     }
 
-    public void handleRead(SelectionKey key) throws IOException {
-        SocketChannel clientChannel = (SocketChannel) key.channel();
-        ConnectionImpl actualConecction = (ConnectionImpl) key.attachment();
-        ByteBuffer readBuffer = actualConecction.getReadBuffer();
 
-        SocketChannel serverChannel = null;
+    public void read(SelectionKey key) throws IOException {
 
-        long bytesRead = clientChannel.read(readBuffer);
+        ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
 
-        // FIXME: Is the same if bytesRead is 0 and -1?
-        if(bytesRead == -1) {
-            clientChannel.close();
-        } else {
-            // TODO: Handle read
-            Runnable command = new Runnable() {
-                public void run() {
-                    try {
-                        if (bytesRead > 0) {
-                            actualConecction.process(bytesRead, clientChannel, readBuffer);
-                        } else if (bytesRead == -1) {
-                            key.cancel();
-                        }
-                    } catch (Exception e) {
-                        // FIXME: This should be in a logger
-                        System.out.println("Error when reading");
-                        key.cancel();
-                    }
-                }
-            };
+        SocketChannel channel = (SocketChannel) key.channel();
+        int read = -1;
+        read = channel.read(buffer);
+
+        // TODO: What's the difference bet 0 and 1?
+        if (read == -1) {
+            // TODO: Log
+            System.out.println("Connection clossed by " + channel.socket().getRemoteSocketAddress());
+            channel.close();
+            key.cancel();
+            return;
+        }
+
+        byte[] data = new byte[read];
+        System.arraycopy(buffer.array(), 0, data, 0, read);
+        String stringRead = new String(data);
+        String toSendString = stringRead;
+
+        // TODO: Log
+        System.out.println("Message received: " + stringRead);
+        if(this.actualConnection.applyLeet()) {
+            Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
+            // TODO: We should use Stanzas here
+            // This is to check if the message has a body, hence if its a message
+            if (doc != null && doc.body() != null) {
+                toSendString = doc.text(Conversor.apply(doc.text()).toString()).toString();
+            }
+        }
+        handleSendMessage(toSendString, channel);
+
+    }
+
+    public void sendToServer(String s) throws IOException {
+        if (this.actualConnection.getServerChannel() == null) {
+            InetSocketAddress hostAddress = new InetSocketAddress(CONNECT_SERVER, CONNECT_PORT);
+            this.actualConnection.setServerChannel(SocketChannel.open(hostAddress));
+        }
+        writeInChannel(s, this.actualConnection.getServerChannel());
+        this.actualConnection.getServerChannel().configureBlocking(false);
+        this.actualConnection.getServerChannel().register(this.actualConnection.getSelector(), SelectionKey.OP_READ);
+    }
+
+    public void sendToClient(String s) throws IOException {
+        writeInChannel(s, this.actualConnection.getClientChannel());
+    }
+
+    // Private functions
+
+    private void writeInChannel(String s, SocketChannel channel) {
+        this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
+    }
+
+    private void handleSendMessage(String message, SocketChannel channel) {
+        try {
+            if (channel == this.actualConnection.getServerChannel()) {
+                sendToClient(message);
+            } else {
+                sendToServer(message);
+            }
+        } catch (IOException e) {
+            // TODO: log
+            System.out.println("Error found in sending message");
         }
 
     }
-
-    public void handleWrite(SelectionKey key) throws IOException {
-        SocketChannel clientChannel = (SocketChannel)key.channel();
-        ConnectionImpl actualConnection = (ConnectionImpl) key.attachment();
-        ByteBuffer writeBuffer = actualConnection.getWriteBuffer();
-        long writtenBytes;
-
-        if(clientChannel.isOpen()) {
-            writtenBytes = clientChannel.write(writeBuffer);
-            // TODO: Handle write
-        } else {
-            actualConnection.endConnection();
-        }
-    }
-
-    /*
-     * Private Functions
-     */
 
 }

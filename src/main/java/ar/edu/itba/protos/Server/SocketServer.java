@@ -2,6 +2,8 @@
 
 package ar.edu.itba.protos.Server;
 
+import ar.edu.itba.protos.Handlers.XMPPHandler;
+import ar.edu.itba.protos.Proxy.Connection.*;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 
 import java.io.IOException;
@@ -13,7 +15,11 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
+import java.util.*;
+
+import org.jsoup.*;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 /**
  * Created by sebastian on 10/18/16.
@@ -23,7 +29,12 @@ public class SocketServer {
     private Selector selector;
     private InetSocketAddress listenAddress;
     private SocketChannel clientOfXmppServer;
-    private SocketChannel adiumChannel;
+    private SocketChannel pidginChannel;
+
+    private ConnectionImpl actualConnection;
+    XMPPHandler xmppHandler;
+
+    Map<SelectionKey, XMPPHandler> handlers = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
         Runnable server = new Runnable() {
@@ -42,11 +53,13 @@ public class SocketServer {
 
     public SocketServer(String address, int port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
+        this.selector = Selector.open();
+        this.xmppHandler = new XMPPHandler(this.selector);
     }
 
     // create server channel
     private void startServer() throws IOException {
-        this.selector = Selector.open();
+
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
 
@@ -73,32 +86,42 @@ public class SocketServer {
                     continue;
                 }
 
+
+                // FIXME: Check for different connections
                 if (key.isAcceptable()) {
                     this.accept(key);
+                    //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
+                    //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
                 }
                 else if (key.isReadable()) {
-                    this.read(key);
+                    //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
+                    //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
+                    xmppHandler.read(key);
                 }
             }
         }
     }
 
-    //accept a connection made to this channel's socket
-    private void accept(SelectionKey key) throws IOException {
-        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
-        SocketChannel channel = serverChannel.accept();
-        channel.configureBlocking(false);
-        Socket socket = channel.socket();
-        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-        System.out.println("Connected to: " + remoteAddr);
+    // **************************************
+    // ************** ADAPTION **************
 
-        // register channel with selector for further IO
-        channel.register(this.selector, SelectionKey.OP_READ);
-        adiumChannel = channel;
+
+
+    private void accept(SelectionKey key) throws IOException{
+        //System.out.println("El seletor de la key: " + key.selector());
+        actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key));
+        pidginChannel = actualConnection.getClientChannel();
     }
+
+
+    // **************************************
+
 
     //read from the socket channel
     private void read(SelectionKey key) throws IOException {
+        //this.xmppHandler.read(key);
+        //System.out.println("A VER ESTO:" + key + " **** " + actualConnection.getClientKey());
+        //System.out.println("Comienzo a leer: " + key);
         SocketChannel channel = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(1024*100);
         int numRead = -1;
@@ -117,10 +140,18 @@ public class SocketServer {
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
 
         String stringRead = new String(data);
+
+        // This is to check if the message has a body, hence if its a message
+        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
+        if(doc != null && doc.body() != null) {
+            stringRead = doc.text(Conversor.apply(doc.text()).toString()).toString();
+        }
+
+        // TODO: logger
         System.out.println("Got: " + stringRead);
 
         if (channel == clientOfXmppServer) {
-            sendToClient(stringRead, adiumChannel);
+            sendToClient(stringRead, pidginChannel);
         } else {
             sendToXmppServer(stringRead);
         }
@@ -143,12 +174,12 @@ public class SocketServer {
     private void writeInChannel(String s, SocketChannel channel) {
 
         StringBuffer sb = Conversor.apply(s);
-        System.out.println("esto es lo convertido: " + sb.toString());
+        //System.out.println("esto es lo convertido: " + sb.toString());
         ByteBuffer buffer = ByteBuffer.wrap(s.getBytes());
 
         try {
-            System.out.print("QUIERO QUE MIRES ACA *********************************");
-            System.out.println(sb.toString());
+            //System.out.print("QUIERO QUE MIRES ACA *********************************");
+            //System.out.println(sb.toString());
             channel.write(buffer);
         } catch (IOException e) {
             // TODO Handle the exception
