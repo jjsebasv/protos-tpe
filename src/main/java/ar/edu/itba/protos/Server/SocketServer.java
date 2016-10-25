@@ -31,12 +31,12 @@ public class SocketServer {
     private SocketChannel clientOfXmppServer;
     private SocketChannel pidginChannel;
 
-    private ConnectionImpl actualConnection;
     XMPPHandler xmppHandler;
 
-    Map<SelectionKey, XMPPHandler> handlers = new HashMap<>();
+    Map<SocketChannel, ConnectionImpl> connections = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
+
         Runnable server = new Runnable() {
             public void run() {
                 try {
@@ -54,7 +54,7 @@ public class SocketServer {
     public SocketServer(String address, int port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
         this.selector = Selector.open();
-        this.xmppHandler = new XMPPHandler(this.selector);
+        this.xmppHandler = new XMPPHandler();
     }
 
     // create server channel
@@ -89,11 +89,13 @@ public class SocketServer {
 
                 // FIXME: Check for different connections
                 if (key.isAcceptable()) {
-                    this.accept(key);
+                    this.accept(key, this.selector);
                     //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
                     //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
+
                 }
                 else if (key.isReadable()) {
+                    Object aa = key.attachment();
                     //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
                     //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
                     xmppHandler.read(key);
@@ -102,91 +104,11 @@ public class SocketServer {
         }
     }
 
-    // **************************************
-    // ************** ADAPTION **************
-
-
-
-    private void accept(SelectionKey key) throws IOException{
+    private void accept(SelectionKey key, Selector selector) throws IOException{
         //System.out.println("El seletor de la key: " + key.selector());
-        actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key));
+        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key, selector));
+        connections.put(actualConnection.getClientChannel(), actualConnection);
         pidginChannel = actualConnection.getClientChannel();
     }
 
-
-    // **************************************
-
-
-    //read from the socket channel
-    private void read(SelectionKey key) throws IOException {
-        //this.xmppHandler.read(key);
-        //System.out.println("A VER ESTO:" + key + " **** " + actualConnection.getClientKey());
-        //System.out.println("Comienzo a leer: " + key);
-        SocketChannel channel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(1024*100);
-        int numRead = -1;
-        numRead = channel.read(buffer);
-
-        if (numRead == -1) {
-            Socket socket = channel.socket();
-            SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-            System.out.println("Connection closed by client: " + remoteAddr);
-            channel.close();
-            key.cancel();
-            return;
-        }
-
-        byte[] data = new byte[numRead];
-        System.arraycopy(buffer.array(), 0, data, 0, numRead);
-
-        String stringRead = new String(data);
-
-        // This is to check if the message has a body, hence if its a message
-        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
-        if(doc != null && doc.body() != null) {
-            stringRead = doc.text(Conversor.apply(doc.text()).toString()).toString();
-        }
-
-        // TODO: logger
-        System.out.println("Got: " + stringRead);
-
-        if (channel == clientOfXmppServer) {
-            sendToClient(stringRead, pidginChannel);
-        } else {
-            sendToXmppServer(stringRead);
-        }
-    }
-
-    private void sendToClient(String s, SocketChannel channel) {
-        writeInChannel(s, channel);
-    }
-
-    private void sendToXmppServer(String s) throws IOException {
-        if (clientOfXmppServer == null) {
-            InetSocketAddress hostAddress = new InetSocketAddress("protos-tpe", 5228);
-            clientOfXmppServer = SocketChannel.open(hostAddress);
-        }
-        writeInChannel(s, clientOfXmppServer);
-        clientOfXmppServer.configureBlocking(false);
-        clientOfXmppServer.register(this.selector, SelectionKey.OP_READ);
-    }
-
-    private void writeInChannel(String s, SocketChannel channel) {
-
-        StringBuffer sb = Conversor.apply(s);
-        //System.out.println("esto es lo convertido: " + sb.toString());
-        ByteBuffer buffer = ByteBuffer.wrap(s.getBytes());
-
-        try {
-            //System.out.print("QUIERO QUE MIRES ACA *********************************");
-            //System.out.println(sb.toString());
-            channel.write(buffer);
-        } catch (IOException e) {
-            // TODO Handle the exception
-            System.out.println("error");
-        }
-        String clientOrServer = channel == clientOfXmppServer ? "server" : "client";
-        System.out.println("Escribiendo al " + clientOrServer + " xmpp..");
-        buffer.clear();
-    }
 }

@@ -4,10 +4,12 @@ import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Protocols.DefaultTCP;
 import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
+import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Stanza.Stanza;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import jdk.nashorn.internal.ir.Block;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
@@ -53,11 +55,6 @@ public class XMPPHandler extends DefaultHandler {
     Map<SocketAddress, ConnectionImpl> connections = new HashMap<>();
     XmppLogger logger = XmppLogger.getInstance();
 
-
-    public XMPPHandler(Selector selector) {
-        this.actualConnection = new ConnectionImpl(selector);
-    }
-
     /*
      * Why do we configureBlocking(false)?
      * ------
@@ -65,7 +62,9 @@ public class XMPPHandler extends DefaultHandler {
      * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
      * Therefore we will have to check if the returned SocketChannel is null.
      */
-    public Connection handleAccept(SelectionKey key) throws IOException {
+    public Connection handleAccept(SelectionKey key, Selector selector) throws IOException {
+        ConnectionImpl connection = new ConnectionImpl(selector);
+
         System.out.println("TESTER: " +  ((ServerSocketChannel)key.channel()).socket().getLocalSocketAddress());
 
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
@@ -78,16 +77,20 @@ public class XMPPHandler extends DefaultHandler {
         clientChannel.configureBlocking(false);
 
         // Why does it doesn't accept OP_ACCEPT
-        clientChannel.register(key.selector(), SelectionKey.OP_READ, this.actualConnection);
+        clientChannel.register(key.selector(), SelectionKey.OP_READ, connection);
 
-        this.actualConnection.setClientChannel(clientChannel);
-        this.actualConnection.setClientKey(key);
+        connection.setClientChannel(clientChannel);
+        connection.setClientKey(key);
 
-        return actualConnection;
+        return connection;
     }
 
 
     public void read(SelectionKey key) throws IOException {
+        if (key.attachment() != null) {
+            this.actualConnection = (ConnectionImpl) key.attachment();
+        }
+        boolean shouldSend = true;
 
         ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
 
@@ -107,17 +110,22 @@ public class XMPPHandler extends DefaultHandler {
         System.arraycopy(buffer.array(), 0, data, 0, read);
         String stringRead = new String(data);
         String toSendString = stringRead;
-
         logger.info("Message received: " + stringRead);
-        if(this.actualConnection.applyLeet()) {
-            Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
-            // TODO: We should use Stanzas here
-            // This is to check if the message has a body, hence if its a message
-            if (doc != null && doc.body() != null) {
+
+        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
+
+        // This is to check if the message has a body, hence if its a message
+        if (doc != null && doc.body() != null) {
+            if(this.actualConnection.applyLeet()) {
+                // TODO: Should use Stanzas here?
                 toSendString = doc.text(Conversor.apply(doc.text()).toString()).toString();
             }
+            shouldSend = !Blocker.apply(doc.toString());
         }
-        handleSendMessage(toSendString, channel);
+
+        if(shouldSend){
+            handleSendMessage(toSendString, channel);
+        }
 
     }
 

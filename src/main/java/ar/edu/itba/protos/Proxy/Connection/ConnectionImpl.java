@@ -256,7 +256,7 @@ public class ConnectionImpl implements Connection {
             SAXParser saxParser;
             try {
                 saxParser = factory.newSAXParser();
-                XMPPHandler handler = new XMPPHandler(Selector.open());
+                XMPPHandler handler = new XMPPHandler();
                 saxParser.parse(is, handler);
                 if (handler.actualStanza == null || !handler.actualStanza.isCompleted()) {
                     // TODO: hanlde incomplete elements
