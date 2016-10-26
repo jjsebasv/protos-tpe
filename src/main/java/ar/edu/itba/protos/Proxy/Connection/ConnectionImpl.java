@@ -35,8 +35,6 @@ import javax.swing.text.html.parser.Parser;
  */
 public class ConnectionImpl implements Connection {
 
-    final String TO_CLIENT_INVALID_XML = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>";
-
     private Selector selector;
 
     private SocketChannel clientChannel;
@@ -57,19 +55,14 @@ public class ConnectionImpl implements Connection {
 
     private XmppLogger logger = XmppLogger.getInstance();
 
-    // Client Streams
-    protected static final String INITIAL_STREAM = "<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0' ";
-
-    // Server Streams
-    protected static final byte[] INITIAL_SERVER_STREAM = ("<?xml version='1.0' ?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>")
-            .getBytes();
-    protected static final byte[] NEGOTIATION = ("<stream:features><mechanisms xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\"><mechanism>PLAIN</mechanism></mechanisms><auth xmlns=\"http://jabber.org/features/iq-auth\"/></stream:features>")
-            .getBytes();
-
     public ConnectionImpl (Selector selector) {
         this.selector = selector;
     }
 
+    /**
+     * Ends a connection and close both the client and the server channel
+     *
+     */
     public void endConnection() {
         if(this.clientChannel != null) {
             try {
@@ -87,13 +80,26 @@ public class ConnectionImpl implements Connection {
         }
     }
 
+    /**
+     *
+     * Sets the server name
+     *
+     * @param serverName
+     */
     public void setServerName(String serverName) {
         this.serverName = serverName;
     }
 
+    /**
+     *
+     * Sets the client name
+     *
+     * @param clientName
+     */
     public void setClientName(String clientName) {
         this.clientName = clientName;
     }
+
 
     public ByteBuffer getWriteBuffer() {
         return this.writeBuffer;
@@ -147,6 +153,14 @@ public class ConnectionImpl implements Connection {
 
     public Selector getSelector() { return this.selector; }
 
+    /**
+     * Processes the mesage and decides whether it should be sent to the server or to the client.
+     *
+     * Once that decision is made, it writes down the message to the corresponding channel
+     *
+     * @param message
+     * @param toWhom
+     */
     public void processWrite(String message, String toWhom) {
         SocketChannel channel;
         switch (toWhom) {
@@ -173,6 +187,7 @@ public class ConnectionImpl implements Connection {
         this.onlyBuffer.clear();
 
     }
+<<<<<<< Updated upstream
 
 
 
@@ -276,4 +291,6 @@ public class ConnectionImpl implements Connection {
         }
         return streamList;
     }
+=======
+>>>>>>> Stashed changes
 }

@@ -1,35 +1,27 @@
 package ar.edu.itba.protos.Handlers;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
-import ar.edu.itba.protos.Protocols.DefaultTCP;
 import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
 import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Stanza.Stanza;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import jdk.nashorn.internal.ir.Block;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by sebastian on 10/9/16.
@@ -52,16 +44,27 @@ public class XMPPHandler extends DefaultHandler {
 
     private ConnectionImpl actualConnection;
 
-    Map<SocketAddress, ConnectionImpl> connections = new HashMap<>();
+
     XmppLogger logger = XmppLogger.getInstance();
 
-    /*
-     * Why do we configureBlocking(false)?
-     * ------
-     * A ServerSocketChannel can be set into non-blocking mode.
-     * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
-     * Therefore we will have to check if the returned SocketChannel is null.
-     */
+    public XMPPHandler(Selector selector) {
+        this.actualConnection = new ConnectionImpl(selector);
+    }
+
+
+   /**
+    *
+    * Handles incoming connections to client port
+    *
+    * Handles the received key - which is acceptable - and creates the clientChannel
+    *
+    * Registers the key with a ConnectionImpl that afterwards will be accessed by the
+    * attachment field.
+    *
+    * @param key
+    * @param selector
+    *
+    */
     public Connection handleAccept(SelectionKey key, Selector selector) throws IOException {
         ConnectionImpl connection = new ConnectionImpl(selector);
 
@@ -74,6 +77,13 @@ public class XMPPHandler extends DefaultHandler {
         // FIXME: This should be logged
         logger.info("Connected to: " + socket.getRemoteSocketAddress());
 
+         /*
+         * Why do we configureBlocking(false)?
+         * ------
+         * A ServerSocketChannel can be set into non-blocking mode.
+         * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
+         * Therefore we will have to check if the returned SocketChannel is null.
+         */
         clientChannel.configureBlocking(false);
 
         // Why does it doesn't accept OP_ACCEPT
@@ -85,7 +95,21 @@ public class XMPPHandler extends DefaultHandler {
         return connection;
     }
 
-
+    /**
+     * Handles incoming reads from both server and clients
+     *
+     * Handles the received key - which is readable - and gets its channel that afterwards will
+     * be compared with the connection's client channel. If equal, the message will be sent to
+     * the client, else to the server.
+     *
+     * Saves the key connection to the actualConnection variable, every other function called in
+     * this scope will be using that instance of ConnectionImpl.
+     *
+     * If the blocking or the filter are turned on, the handler will deal with it.
+     *
+     *  @param key
+     *
+     */
     public void read(SelectionKey key) throws IOException {
         if (key.attachment() != null) {
             this.actualConnection = (ConnectionImpl) key.attachment();
@@ -129,6 +153,20 @@ public class XMPPHandler extends DefaultHandler {
 
     }
 
+
+    /**
+     *
+     * Sends the specific string to the server.
+     *
+     * Checks our the connection to see if exists a server channel. If not, creates a new one.
+     *
+     * At this point we can be sure that no user is blocked in this channel and that the message
+     * is already converted if demanded.
+     *
+     * @param s
+     * @throws IOException
+     *
+     */
     public void sendToServer(String s) throws IOException {
         if (this.actualConnection.getServerChannel() == null) {
             InetSocketAddress hostAddress = new InetSocketAddress(CONNECT_SERVER, CONNECT_PORT);
@@ -139,16 +177,46 @@ public class XMPPHandler extends DefaultHandler {
         this.actualConnection.getServerChannel().register(this.actualConnection.getSelector(), SelectionKey.OP_READ);
     }
 
+    /**
+     *
+     * Send the specific message to the client
+     *
+     * Checks our the connection to get the client channel.
+     *
+     * At this point we can be sure that no user is blocked in this channel and that the message
+     * is already converted if demanded.
+     *
+     * @param s
+     * @throws IOException
+     *
+     */
     public void sendToClient(String s) throws IOException {
         writeInChannel(s, this.actualConnection.getClientChannel());
     }
 
     // Private functions
 
+
+    /**
+     *
+     * Writes the specified message through the specified channel
+     *
+     * @param s
+     * @param channel
+     *
+     */
     private void writeInChannel(String s, SocketChannel channel) {
         this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
     }
 
+    /**
+     *
+     * Decides wheter the message should be sent to the server or to the client.
+     *
+     * @param message
+     * @param channel
+     *
+     */
     private void handleSendMessage(String message, SocketChannel channel) {
         try {
             if (channel == this.actualConnection.getServerChannel()) {

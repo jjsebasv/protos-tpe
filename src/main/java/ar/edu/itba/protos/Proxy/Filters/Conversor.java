@@ -6,6 +6,13 @@ package ar.edu.itba.protos.Proxy.Filters;
  */
 public class Conversor {
 
+    /**
+     *
+     * Applies a basic leet conversor the received message
+     *
+     * @param characters
+     * @return the converted message
+     */
     public static StringBuffer apply(String characters) {
         StringBuffer stringBuffer = new StringBuffer();
         int length = characters.length();
