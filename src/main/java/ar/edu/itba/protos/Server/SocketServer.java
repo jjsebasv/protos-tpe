@@ -2,6 +2,7 @@
 
 package ar.edu.itba.protos.Server;
 
+import ar.edu.itba.protos.Admin.AdminHandler;
 import ar.edu.itba.protos.Handlers.XMPPHandler;
 import ar.edu.itba.protos.Proxy.Connection.*;
 
@@ -21,6 +22,9 @@ public class SocketServer {
     private Selector selector;
     private InetSocketAddress listenAddress;
     private ServerSocketChannel serverChannel;
+    private ServerSocketChannel adminChannel;
+
+    AdminHandler adminHandler = new AdminHandler(selector);
 
     XMPPHandler xmppHandler;
 
@@ -56,6 +60,13 @@ public class SocketServer {
         listenAddress = new InetSocketAddress(address, port);
         this.selector = Selector.open();
         this.xmppHandler = new XMPPHandler(this.selector);
+
+        // Starting admin
+        this.adminChannel = ServerSocketChannel.open();
+        this.adminChannel.socket().bind(new InetSocketAddress("localhost", 5224));
+        this.adminChannel.configureBlocking(false);
+        this.adminChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+        this.adminHandler.setChannel(this.adminChannel);
     }
 
     /**
@@ -80,9 +91,10 @@ public class SocketServer {
         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
 
-        while (true) {
+        while (!Thread.interrupted()) {
             // wait for events
-            this.selector.select();
+            if (this.selector.select(3000) == 0)
+                continue;
 
             //work on selected keys
             Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
@@ -91,8 +103,9 @@ public class SocketServer {
 
                 // this is necessary to prevent the same key from coming up
                 // again the next time around.
-                keys.remove();
 
+
+                System.out.println(key);
                 if (!key.isValid()) {
                     continue;
                 }
@@ -101,19 +114,34 @@ public class SocketServer {
                 // FIXME: Check for different connections
                 if (key.isAcceptable()) {
 
-                    serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-                    this.accept(key, this.selector);
+                    if (key.channel() == this.adminChannel){
+                        System.out.println("something");
+                        this.adminHandler.accept(this.adminChannel.accept());
+                    } else {
+                        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+                        this.accept(key, this.selector);
+                    }
 
                     //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
                     //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
 
                 }
                 else if (key.isReadable()) {
-                    Object aa = key.attachment();
+                    ConnectionImpl aa =  (ConnectionImpl) key.attachment();
                     //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
                     //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
-                    xmppHandler.read(key);
+
+                    if (key.channel() == this.adminChannel){
+                        System.out.println("something");
+                        xmppHandler.read(key);
+                    } else {
+                        this.adminHandler.read(key);
+                    }
+
+                } else {
+                    System.out.println("We are here");
                 }
+                keys.remove();
             }
         }
     }

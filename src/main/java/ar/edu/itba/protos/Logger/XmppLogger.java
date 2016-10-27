@@ -29,10 +29,12 @@ public class XmppLogger {
     }
 
     public void info(Object message) {
+        System.out.println("INFO: " + message);
         logger.info(message);
     }
 
     public void error(Object message) {
+        System.out.println("ERROR: " + message);
         logger.error(message);
     }
 
