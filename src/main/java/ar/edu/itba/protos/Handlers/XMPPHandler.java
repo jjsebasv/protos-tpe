@@ -140,7 +140,7 @@ public class XMPPHandler extends DefaultHandler {
 
         // This is to check if the message has a body, hence if its a message
         if (doc != null && doc.body() != null) {
-            if(this.actualConnection.applyLeet()) {
+            if(Conversor.applyLeet) {
                 // TODO: Should use Stanzas here?
                 toSendString = doc.text(Conversor.apply(doc.text()).toString()).toString();
             }

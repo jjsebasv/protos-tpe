@@ -29,8 +29,6 @@ public class ConnectionImpl implements Connection {
     private String serverName;
     private String clientName;
 
-    private boolean applyLeet = false;
-
     public ByteBuffer onlyBuffer;
 
     private XmppLogger logger = XmppLogger.getInstance();
@@ -124,18 +122,6 @@ public class ConnectionImpl implements Connection {
 
     public String getServerName() {
         return this.serverName;
-    }
-
-    public void enableLeet() {
-        this.applyLeet = true;
-    }
-
-    public void disableLeet() {
-        this.applyLeet = false;
-    }
-
-    public boolean applyLeet() {
-        return this.applyLeet;
     }
 
     public Selector getSelector() {
