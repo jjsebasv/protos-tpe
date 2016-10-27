@@ -1,5 +1,6 @@
 package ar.edu.itba.protos.Admin;
 
+import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 
 import java.nio.ByteBuffer;
@@ -39,7 +40,7 @@ public class AdminParser {
         switch (commands[0].toString()) {
             case "LOG":
                 if( commands[1] == null || commands[2] == null) {
-                return -1;
+                    return -1;
                 }
                 return login(commands[1], commands[2]);
             case "LeetOn\n":
@@ -48,6 +49,16 @@ public class AdminParser {
                 return 5;
             case "LOGOUT\n":
                 return 7;
+            case "BLOCK":
+                if(commands[1] == null) {
+                    return -1;
+                }
+                return block(commands[1]);
+            case "UNBLOCK":
+                if(commands[1] == null) {
+                    return -1;
+                }
+                return unblock(commands[1]);
             default:
                 return -1;
 
@@ -82,6 +93,16 @@ public class AdminParser {
             }
         }
         return 1;
+    }
+
+    private int block(String username) {
+        Blocker.add(username);
+        return 8;
+    }
+
+    private int unblock(String username) {
+        Blocker.remove(username);
+        return 9;
     }
 
 

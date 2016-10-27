@@ -120,6 +120,12 @@ public class AdminHandler extends DefaultHandler {
                 channel.close();
                 key.cancel();
                 return;
+            case 8:
+                channel.write(ByteBuffer.wrap("User blocked!!\n".getBytes()));
+                return;
+            case 9:
+                channel.write(ByteBuffer.wrap("User unblocked!!\n".getBytes()));
+                return;
             case -2: // You are not logged in
                 channel.write(ByteBuffer.wrap("You're not logged in\n".getBytes()));
                 break;

@@ -2,16 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2815dedb-f5fa-4d35-936b-058009f76d18" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/Admin.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Admin/AdminHandler.class" afterPath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Admin/AdminHandler.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Server/SocketServer.class" afterPath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Server/SocketServer.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/logs.html" afterPath="$PROJECT_DIR$/logs.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Conversor.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Conversor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/SocketServer.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/SocketServer.java" />
     </list>
     <ignored path="xmpp-proxy.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,14 +24,14 @@
     <favorites_list name="xmpp-proxy" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.49141878">
+    <splitter split-orientation="horizontal" split-proportion="0.8811384">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="XMPPHandler.java" pinned="false" current-in-tab="true">
+          <file leaf-file-name="XMPPHandler.java" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="362">
-                  <caret line="142" column="34" selection-start-line="142" selection-start-column="34" selection-end-line="142" selection-end-column="34" />
+                <state relative-caret-position="482">
+                  <caret line="150" column="35" selection-start-line="150" selection-start-column="35" selection-end-line="150" selection-end-column="35" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -60,7 +52,7 @@
           <file leaf-file-name="ConnectionImpl.java" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Connection/ConnectionImpl.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="360">
+                <state relative-caret-position="0">
                   <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
                   <folding>
                     <element signature="imports" expanded="true" />
@@ -69,11 +61,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="AdminHandler.java" pinned="false" current-in-tab="false">
+          <file leaf-file-name="AdminHandler.java" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1152">
-                  <caret line="128" column="31" selection-start-line="128" selection-start-column="31" selection-end-line="128" selection-end-column="31" />
+                <state relative-caret-position="390">
+                  <caret line="127" column="23" selection-start-line="127" selection-start-column="23" selection-end-line="127" selection-end-column="23" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -84,12 +76,12 @@
           <file leaf-file-name="AdminParser.java" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="353">
-                  <caret line="49" column="25" selection-start-line="49" selection-start-column="25" selection-end-line="49" selection-end-column="25" />
+                <state relative-caret-position="443">
+                  <caret line="104" column="16" selection-start-line="104" selection-start-column="16" selection-end-line="104" selection-end-column="16" />
                   <folding>
                     <element signature="imports" expanded="true" />
-                    <element signature="e#366#367#0" expanded="true" />
-                    <element signature="e#442#443#0" expanded="true" />
+                    <element signature="e#415#416#0" expanded="true" />
+                    <element signature="e#491#492#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -179,9 +171,9 @@
         <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Server/SocketServer.java" />
         <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/Admin.java" />
         <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Conversor.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java" />
         <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java" />
+        <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java" />
+        <option value="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java" />
       </list>
     </option>
   </component>
@@ -1008,12 +1000,12 @@
       <option name="presentableId" value="Default" />
       <updated>1477540502526</updated>
       <workItem from="1477540512131" duration="6058000" />
-      <workItem from="1477606112932" duration="5094000" />
+      <workItem from="1477606112932" duration="5738000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="12394000" />
+    <option name="totallyTimeSpent" value="13038000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
@@ -1032,7 +1024,7 @@
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16666667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.06666667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1399,16 +1391,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Connection/ConnectionImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Blocker.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="622">
@@ -1425,32 +1407,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="353">
-          <caret line="49" column="25" selection-start-line="49" selection-start-column="25" selection-end-line="49" selection-end-column="25" />
+        <state relative-caret-position="482">
+          <caret line="150" column="35" selection-start-line="150" selection-start-column="35" selection-end-line="150" selection-end-column="35" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#366#367#0" expanded="true" />
-            <element signature="e#442#443#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Connection/ConnectionImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminParser.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="443">
+          <caret line="104" column="16" selection-start-line="104" selection-start-column="16" selection-end-line="104" selection-end-column="16" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#415#416#0" expanded="true" />
+            <element signature="e#491#492#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Admin/AdminHandler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1152">
-          <caret line="128" column="31" selection-start-line="128" selection-start-column="31" selection-end-line="128" selection-end-column="31" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="142" column="34" selection-start-line="142" selection-start-column="34" selection-end-line="142" selection-end-column="34" />
+        <state relative-caret-position="390">
+          <caret line="127" column="23" selection-start-line="127" selection-start-column="23" selection-end-line="127" selection-end-column="23" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
