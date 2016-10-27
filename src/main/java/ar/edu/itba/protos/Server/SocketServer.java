@@ -116,7 +116,7 @@ public class SocketServer {
 
                     if (key.channel() == this.adminChannel){
                         System.out.println("something");
-                        this.adminHandler.accept(this.adminChannel.accept());
+                        this.adminHandler.accept(key, this.selector);
                     } else {
                         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
                         this.accept(key, this.selector);
@@ -138,8 +138,6 @@ public class SocketServer {
                         this.adminHandler.read(key);
                     }
 
-                } else {
-                    System.out.println("We are here");
                 }
                 keys.remove();
             }

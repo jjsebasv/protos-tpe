@@ -1,16 +1,18 @@
 package ar.edu.itba.protos.Admin;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
+import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
+import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by sebastian on 10/27/16.
@@ -24,6 +26,7 @@ public class AdminHandler extends DefaultHandler {
     private AdminParser parser;
     private boolean logged = false;
     private XmppLogger logger = XmppLogger.getInstance();
+    private Selector selector;
 
     public AdminHandler(Selector selector) {
         config = new HashMap<>();
@@ -33,6 +36,7 @@ public class AdminHandler extends DefaultHandler {
     public void setChannel(ServerSocketChannel channel) {
         this.channel = channel;
     }
+    public void setSelector(Selector selector) { this.selector = selector; }
 
     /**
      * Handles incoming connections to admin port.
@@ -42,9 +46,27 @@ public class AdminHandler extends DefaultHandler {
      *
      */
 
-    public void accept(SocketChannel channel) throws IOException {
+    public void accept(SelectionKey key, Selector selector) throws IOException {
+
         logger.info("New admin connected");
-        config.put(channel, ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
+        System.out.println("hey, new admin!");
+
+        ConnectionImpl connection = new ConnectionImpl(selector);
+
+
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+        SocketChannel clientChannel = serverSocketChannel.accept();
+        Socket socket = clientChannel.socket();
+
+        logger.info("Connected to: " + socket.getRemoteSocketAddress());
+        clientChannel.configureBlocking(false);
+        clientChannel.register(key.selector(), SelectionKey.OP_READ, connection);
+
+        connection.setClientChannel(clientChannel);
+        connection.setClientKey(key);
+
+
+        config.put(clientChannel, ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
     }
 
     /**
@@ -54,31 +76,66 @@ public class AdminHandler extends DefaultHandler {
      *
      */
 
-    public SocketChannel read(SelectionKey key) throws IOException {
-        SocketChannel s = (SocketChannel) key.channel();
-        ByteBuffer buffer = config.get(s);
-        int bytesRead = s.read(buffer);
+    public void read(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        ByteBuffer buffer = config.get(channel);
+        int bytesRead = channel.read(buffer);
         System.out.println("Estoy leyendo del admin");
-        try {
-            String response;
-            if ((response = parser.parseCommand(buffer, bytesRead)) != null) {
-                if (logged || response.equals("PASSWORD OK\n")) {
-                    logged = true;
-                    s.write(ByteBuffer.wrap(response.getBytes()));
-                } else if (response.equals("INVALID PASSWORD\n")){
-                    s.write(ByteBuffer.wrap(response.getBytes()));
-                } else {
-                    s.write(ByteBuffer.wrap("Not logged in!\n".getBytes()));
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Lost connection with the admin");
-            s.close();
+
+        int read = -1;
+        read = channel.read(buffer);
+
+        if (read == -1) {
+            channel.close();
             key.cancel();
-            return null;
+            return;
         }
-        buffer.clear();
-        return null;
+
+        byte[] data = new byte[read];
+        System.arraycopy(buffer.array(), 0, data, 0, read);
+        String stringRead = new String(data);
+
+        int response = parser.parseCommand(buffer, bytesRead, this.logged);
+        switch (response) {
+            case 1: // Wrong username
+                channel.write(ByteBuffer.wrap("Invalid Username!\n".getBytes()));
+                break;
+            case 2: // Wrong pass
+                channel.write(ByteBuffer.wrap("Invalid Pass!\n".getBytes()));
+                break;
+            case 3: // Connected
+                logged = true;
+                channel.write(ByteBuffer.wrap("Logged in!\n".getBytes()));
+                break;
+            case 4: // Enable leet
+                Conversor.applyLeet = true;
+                channel.write(ByteBuffer.wrap("4pply1ng l33t\n".getBytes()));
+                break;
+            case 5:
+                Conversor.applyLeet = false;
+                channel.write(ByteBuffer.wrap("Leet disabled\n".getBytes()));
+                break;
+            case 7:
+                channel.write(ByteBuffer.wrap("Good Bye!!\n".getBytes()));
+                channel.close();
+                key.cancel();
+                return;
+            case -2: // You are not logged in
+                channel.write(ByteBuffer.wrap("You're not logged in\n".getBytes()));
+                break;
+            default: // wrong command
+                // FIXME: What do we do with this? How do we allow to write something ese once is wrong?
+                channel.write(ByteBuffer.wrap("WRONG COMMAND\n".getBytes()));
+                buffer.clear();
+                break;
+                /*                 logger.error("Lost connection with the admin");
+                channel.close();
+                key.cancel();
+                return;
+                */
+        }
+
+        return;
     }
 
     /**

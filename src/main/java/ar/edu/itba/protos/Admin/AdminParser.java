@@ -1,13 +1,23 @@
 package ar.edu.itba.protos.Admin;
 
+import ar.edu.itba.protos.Proxy.Filters.Conversor;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by sebastian on 10/27/16.
  */
 public class AdminParser {
+
+    private final Set<Admin> admins = new HashSet<>();
+
+    public AdminParser() {
+        admins.add(new Admin("sebas-admin@protos-tpe", "123456789"));
+    }
 
     /**
      * Parses a command from the read buffer and validates that it is a valid
@@ -18,15 +28,30 @@ public class AdminParser {
      * @return
      */
 
-    public String parseCommand(ByteBuffer readBuffer, int bytesRead) {
+    public int parseCommand(ByteBuffer readBuffer, int bytesRead, boolean logged) {
 
         String fullCommand = new String(readBuffer.array()).substring(0, bytesRead);
-        Map<String, String> commands = new HashMap<>();
-        for (String s : fullCommand.split(";")) {
-            System.out.println(s);
+        String commands[] = fullCommand.split(" ");
+        if(!logged && !commands[0].equals("LOG")) {
+            return -2;
         }
 
-        return takeActions(commands);
+        switch (commands[0].toString()) {
+            case "LOG":
+                if( commands[1] == null || commands[2] == null) {
+                return -1;
+                }
+                return login(commands[1], commands[2]);
+            case "LeetOn\n":
+                return 4;
+            case "LeetOff\n":
+                return 5;
+            case "LOGOUT\n":
+                return 7;
+            default:
+                return -1;
+
+        }
     }
 
     /**
@@ -46,4 +71,41 @@ public class AdminParser {
         return responseToAdmin + '\n';
     }
 
+    private int login(String username, String pass) {
+        for (Admin admin : admins) {
+            if (username.equals(admin.getUsername())) {
+                if (pass.equals(admin.getPass().concat("\n")) || pass.equals(admin.getPass())) {
+                    return 3; // Connected
+                } else {
+                    return 2; // Wrong pass
+                }
+            }
+        }
+        return 1;
+    }
+
+
 }
+
+
+/*
+if(stringRead.indexOf("LOG") == 0) {
+            String command[] = stringRead.split(" ");
+            boolean foundUser = false;
+            for (Admin admin : admins) {
+                if (command[1].equals(admin.getUsername())) {
+                    foundUser = true;
+                    if (command[2].equals(admin.getPass())) {
+                        logged = true;
+                        channel.write(ByteBuffer.wrap("Logged in\n".getBytes()));
+                    } else {
+                        foundUser = false;
+                        channel.write(ByteBuffer.wrap("Wrong pass\n".getBytes()));
+                    }
+                }
+            }
+            if (!foundUser) {
+                channel.write(ByteBuffer.wrap("Wrong User!\n".getBytes()));
+            }
+        }
+ */

@@ -6,6 +6,8 @@ package ar.edu.itba.protos.Proxy.Filters;
  */
 public class Conversor {
 
+    public static boolean applyLeet = false;
+
     /**
      *
      * Applies a basic leet conversor the received message
