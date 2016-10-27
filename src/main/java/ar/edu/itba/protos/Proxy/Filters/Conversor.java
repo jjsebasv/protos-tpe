@@ -8,6 +8,10 @@ public class Conversor {
 
     public static boolean applyLeet = false;
 
+    public static boolean leet() {
+        return applyLeet;
+    };
+
     /**
      *
      * Applies a basic leet conversor the received message
