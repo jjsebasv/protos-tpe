@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2815dedb-f5fa-4d35-936b-058009f76d18" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Handlers/XMPPHandler.class" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/target/classes/ar/edu/itba/protos/Server/SocketServer.class" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/logs.html" afterPath="$PROJECT_DIR$/logs.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Handlers/XMPPHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Conversor.java" afterPath="$PROJECT_DIR$/src/main/java/ar/edu/itba/protos/Proxy/Filters/Conversor.java" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/logs.html" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="xmpp-proxy.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -97,8 +94,8 @@
           <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="7755">
-                  <caret line="517" column="16" selection-start-line="517" selection-start-column="16" selection-end-line="517" selection-end-column="16" />
+                <state relative-caret-position="7710">
+                  <caret line="514" column="16" selection-start-line="514" selection-start-column="16" selection-end-line="514" selection-end-column="16" />
                   <folding />
                 </state>
               </provider>
@@ -946,12 +943,12 @@
       <option name="presentableId" value="Default" />
       <updated>1477546797334</updated>
       <workItem from="1477546800949" duration="110000" />
-      <workItem from="1477612344814" duration="231000" />
+      <workItem from="1477612344814" duration="307000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="982000" />
+    <option name="totallyTimeSpent" value="1058000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
@@ -1346,8 +1343,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7755">
-          <caret line="517" column="16" selection-start-line="517" selection-start-column="16" selection-end-line="517" selection-end-column="16" />
+        <state relative-caret-position="7710">
+          <caret line="514" column="16" selection-start-line="514" selection-start-column="16" selection-end-line="514" selection-end-column="16" />
           <folding />
         </state>
       </provider>
