@@ -88,10 +88,10 @@ allow_registration = true;
 
 -- These are the SSL/TLS-related settings. If you don't want
 -- to use SSL/TLS, you may comment or remove this
---	ssl = {
---		key = "../certs/test.key";
---		certificate = "../certs/test.crt";
---	}
+	ssl = {
+		key = "../certs/protos.org.key";
+		certificate = "../certs/protos.org.crt";
+	}
 
 -- Force clients to use encrypted connections? This option will
 -- prevent clients from authenticating unless they are using encryption.
@@ -177,7 +177,10 @@ VirtualHost "test.com"
 --Component "conference.example.com" "muc"
 
 -- Set up a SOCKS5 bytestream proxy for server-proxied file transfers:
---Component "proxy.example.com" "proxy65"
+Component "proxy.example.com" "proxy65"
+proxy65_ports = { 5223 }
+proxy65_interfaces = { "127.0.0.1" }
+
 
 ---Set up an external component (default component port is 5347)
 --
