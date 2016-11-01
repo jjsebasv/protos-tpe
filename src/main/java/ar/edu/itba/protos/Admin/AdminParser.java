@@ -88,7 +88,7 @@ public class AdminParser {
                 case "UNPLEX":
                     return uplex(commands[1]);
                 case "PASSCHANGE":
-                    return cPass(commands[1]);
+                    return cPass(commands[1],commands[2],commands[3]);
                 default:
                     return -1;
 
