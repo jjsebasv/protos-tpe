@@ -2,6 +2,7 @@ package ar.edu.itba.protos.Admin;
 
 import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
+import ar.edu.itba.protos.Proxy.Filters.Multiplexer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -14,10 +15,28 @@ import java.util.Set;
  */
 public class AdminParser {
 
+    private Map<String,String> adminBeta = new HashMap<>();
+
     private final Set<Admin> admins = new HashSet<>();
+    private Map<String,Integer> comNumber = new HashMap<>();
+
 
     public AdminParser() {
+
         admins.add(new Admin("sebas-admin@protos-tpe", "123456789"));
+        comNumber.put("log",2);
+        comNumber.put("logout",0);
+        comNumber.put("leeton",0);
+        comNumber.put("leetoff",0);
+        comNumber.put("block",1);
+        comNumber.put("unblock",1);
+        comNumber.put("multiplex",2);
+        comNumber.put("unplex",1);
+        comNumber.put("metrics",0);
+        comNumber.put("passchange",3);
+        adminBeta.put("sebas-admin@protos-tpe","123456789");
+
+
     }
 
     /**
@@ -29,6 +48,9 @@ public class AdminParser {
      * @return
      */
 
+
+
+
     public int parseCommand(ByteBuffer readBuffer, int bytesRead, boolean logged) {
 
         String fullCommand = new String(readBuffer.array()).substring(0, bytesRead);
@@ -37,31 +59,42 @@ public class AdminParser {
             return -2;
         }
 
-        switch (commands[0].toString()) {
-            case "LOG":
-                if( commands[1] == null || commands[2] == null) {
-                    return -1;
-                }
-                return login(commands[1], commands[2]);
-            case "LeetOn\n":
-                return 4;
-            case "LeetOff\n":
-                return 5;
-            case "LOGOUT\n":
-                return 7;
-            case "BLOCK":
-                if(commands[1] == null) {
-                    return -1;
-                }
-                return block(commands[1]);
-            case "UNBLOCK":
-                if(commands[1] == null) {
-                    return -1;
-                }
-                return unblock(commands[1]);
-            default:
-                return -1;
 
+        if(comNumber.containsKey(commands[0].toLowerCase()) && commands.length == comNumber.get(commands[0].toLowerCase())) {
+            switch (commands[0].toString().toUpperCase()) {
+                case "LOG":
+                    if (commands[1] == null || commands[2] == null) {
+                        return -1;
+                    }
+                    return login(commands[1], commands[2]);
+                case "LEETON\n":
+                    return 4;
+                case "LEETOFF\n":
+                    return 5;
+                case "LOGOUT\n":
+                    return 7;
+                case "BLOCK":
+                    if (commands[1] == null) {
+                        return -1;
+                    }
+                    return block(commands[1]);
+                case "UNBLOCK":
+                    if (commands[1] == null) {
+                        return -1;
+                    }
+                    return unblock(commands[1]);
+                case "MULTIPLEX":
+                    return mplex(commands[1],commands[2]);
+                case "UNPLEX":
+                    return uplex(commands[1]);
+                case "PASSCHANGE":
+                    return cPass(commands[1]);
+                default:
+                    return -1;
+
+            }
+        }else{
+            return -1;
         }
     }
 
@@ -103,6 +136,31 @@ public class AdminParser {
     private int unblock(String username) {
         Blocker.remove(username);
         return 9;
+    }
+
+    private int mplex(String username, String server){
+        Multiplexer.multiplex(username,server);
+        return 10;
+    }
+
+    private int uplex(String username){
+        Multiplexer.unplex(username);
+        return 11;
+    }
+
+
+    //missing connection state
+    private int cPass(String adminUser, String currentPass, String newPass){
+        if(adminBeta.containsKey(adminUser){
+            if (adminBeta.get(adminUser).compareTo(currentPass)==0){
+                adminBeta.put(adminUser,newPass);
+                return 12;//password changed succesfully
+            }else{
+                return -4;// wrong pass
+            }
+        }
+        return -3;//wrong username
+
     }
 
 

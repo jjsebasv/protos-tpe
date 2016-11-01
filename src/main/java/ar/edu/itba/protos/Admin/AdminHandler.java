@@ -3,8 +3,6 @@ package ar.edu.itba.protos.Admin;
 import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
-import org.xml.sax.helpers.DefaultHandler;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -13,6 +11,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
+import org.xml.sax.helpers.DefaultHandler;
+
 
 /**
  * Created by sebastian on 10/27/16.
@@ -126,8 +126,23 @@ public class AdminHandler extends DefaultHandler {
             case 9:
                 channel.write(ByteBuffer.wrap("User unblocked!!\n".getBytes()));
                 return;
+            case 10:
+                channel.write(ByteBuffer.wrap("User redirected!!\n".getBytes()));
+                return;
+            case 11:
+                channel.write(ByteBuffer.wrap("User unplexed!!\n".getBytes()));
+                return;
+            case 12:
+                channel.write(ByteBuffer.wrap("Password changed succesfully\n".getBytes()));
+                return;
             case -2: // You are not logged in
                 channel.write(ByteBuffer.wrap("You're not logged in\n".getBytes()));
+                break;
+            case -3:
+                channel.write(ByteBuffer.wrap("Unexisting admin user\n".getBytes()));
+                break;
+            case -4:
+                channel.write(ByteBuffer.wrap("Password does not match\n".getBytes()));
                 break;
             default: // wrong command
                 // FIXME: What do we do with this? How do we allow to write something ese once is wrong?
@@ -136,7 +151,8 @@ public class AdminHandler extends DefaultHandler {
                 break;
                 /*                 logger.error("Lost connection with the admin");
                 channel.close();
-                key.cancel();
+                key.cance
+                l();
                 return;
                 */
         }

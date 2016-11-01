@@ -15,4 +15,6 @@ public class Admin {
 
     public String getUsername() { return this.username; }
     public String getPass() { return this.pass; }
+
+    public void setPass(String pass){ this.pass = pass; }
 }
