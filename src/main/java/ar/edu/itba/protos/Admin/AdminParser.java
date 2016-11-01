@@ -151,7 +151,7 @@ public class AdminParser {
 
     //missing connection state
     private int cPass(String adminUser, String currentPass, String newPass){
-        if(adminBeta.containsKey(adminUser){
+        if(adminBeta.containsKey(adminUser)){
             if (adminBeta.get(adminUser).compareTo(currentPass)==0){
                 adminBeta.put(adminUser,newPass);
                 return 12;//password changed succesfully
