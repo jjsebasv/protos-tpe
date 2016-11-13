@@ -33,15 +33,13 @@ public class SocketServer {
     
     public static void main(String[] args) throws Exception {
 
-        Runnable server = new Runnable() {
-            public void run() {
-                try {
-                    new SocketServer("localhost", 5223).startServer();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+        Runnable server = () -> {
+            try {
+                new SocketServer("localhost", 5225).startServer();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
         };
 
         new Thread(server).start();
@@ -99,7 +97,7 @@ public class SocketServer {
             //work on selected keys
             Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
             while (keys.hasNext()) {
-                SelectionKey key = (SelectionKey) keys.next();
+                SelectionKey key = keys.next();
 
                 // this is necessary to prevent the same key from coming up
                 // again the next time around.
@@ -125,17 +123,16 @@ public class SocketServer {
                     //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
                     //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
 
-                }
-                else if (key.isReadable()) {
+                } else if (key.isReadable()) {
                     ConnectionImpl aa =  (ConnectionImpl) key.attachment();
                     //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
                     //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
 
                     if (key.channel() == this.adminChannel){
                         System.out.println("something");
-                        xmppHandler.read(key);
-                    } else {
                         this.adminHandler.read(key);
+                    } else {
+                        xmppHandler.read(key);
                     }
 
                 }

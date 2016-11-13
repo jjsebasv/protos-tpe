@@ -162,8 +162,6 @@ public class AdminParser {
         return -3;//wrong username
 
     }
-
-
 }
 
 
