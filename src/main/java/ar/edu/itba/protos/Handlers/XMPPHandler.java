@@ -114,12 +114,15 @@ public class XMPPHandler extends DefaultHandler {
         if (key.attachment() != null) {
             this.actualConnection = (ConnectionImpl) key.attachment();
         }
+
+
         boolean shouldSend = true;
 
         ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
 
         SocketChannel channel = (SocketChannel) key.channel();
         int read = -1;
+
         read = channel.read(buffer);
 
         // TODO: What's the difference bet 0 and 1?
@@ -136,16 +139,15 @@ public class XMPPHandler extends DefaultHandler {
         String toSendString = stringRead;
         logger.info("Message received: " + stringRead);
 
-        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
-
-        // This is to check if the message has a body, hence if its a message
-        if (doc != null && doc.body() != null) {
-            if(Conversor.applyLeet) {
-                // TODO: Should use Stanzas here?
-                toSendString = doc.text(Conversor.apply(doc.text()).toString()).toString();
+        if(Conversor.applyLeet) {
+            // TODO: Should use Stanzas here?
+            String auxiliar = Conversor.findAndConvert(stringRead);
+            if (auxiliar != null) {
+              toSendString = auxiliar;
             }
-            shouldSend = !Blocker.apply(doc.toString());
         }
+
+        shouldSend = !Blocker.apply(stringRead.toString());
 
         if(shouldSend){
             handleSendMessage(toSendString, channel);
@@ -206,7 +208,7 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     private void writeInChannel(String s, SocketChannel channel) {
-        this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
+            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
     }
 
     /**

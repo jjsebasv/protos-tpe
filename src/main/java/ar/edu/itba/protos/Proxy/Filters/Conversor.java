@@ -6,7 +6,28 @@ package ar.edu.itba.protos.Proxy.Filters;
  */
 public class Conversor {
 
-    public static boolean applyLeet = false;
+    public static boolean applyLeet = true;
+
+    public static String findAndConvert(String s) {
+        int message = s.indexOf("<message");
+
+        if (message == -1) {
+            return null;
+        }
+
+        int bodyStartIndex = s.indexOf("<body>");
+        int bodyEndIndex = s.indexOf("</body>");
+
+        if (bodyStartIndex == -1 || bodyEndIndex == -1) {
+            return null;
+        }
+
+        String body = s.substring(bodyStartIndex + 7, bodyEndIndex);
+        StringBuffer newBody = apply(body);
+
+        return s.substring(0,bodyStartIndex+7) +  newBody.toString() + s.substring(bodyEndIndex);
+    }
+
 
     /**
      *
@@ -15,7 +36,7 @@ public class Conversor {
      * @param characters
      * @return the converted message
      */
-    public static StringBuffer apply(String characters) {
+    private static StringBuffer apply(String characters) {
         StringBuffer stringBuffer = new StringBuffer();
         int length = characters.length();
         for (int i = 0; i < length; i++) {
