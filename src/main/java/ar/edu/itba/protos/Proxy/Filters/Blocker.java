@@ -18,22 +18,26 @@ public class Blocker {
     public static List<String> getBlockedUsers() {return blockedUsers;}
 
     public static boolean apply(String s) {
-        String fromUser;
-        String toUser;
+        String fromUser = null;
+        String toUser = null;
 
         int fromIndex = s.indexOf("from=");
         int untilFrom = s.indexOf('/', fromIndex);
+        if (fromIndex != -1) {
+            fromUser = s.substring(fromIndex+6, untilFrom);
+        }
 
         int toIndex = s.indexOf("to=");
         int untilTo = s.indexOf('/', toIndex);
+        if (fromIndex != -1) {
+            toUser = s.substring(toIndex+4, untilTo);
+        }
 
-        fromUser = s.substring(fromIndex+6, untilFrom);
-        toUser = s.substring(toIndex+4, untilTo);
         for (String user : blockedUsers) {
             System.out.println(user);
             System.out.println("from: " + fromUser);
             System.out.println("to: " + toUser);
-            if (user.equals(fromUser) || user.equals(toUser)) {
+            if ( (fromUser != null && user.equals(fromUser)) || (toUser != null && user.equals(toUser)) ) {
                 System.out.println("TENEMOS QUE BLOCKEAR");
                 return true;
             }

@@ -91,42 +91,29 @@ public class SocketServer {
 
         while (!Thread.interrupted()) {
             // wait for events
-            if (this.selector.select(3000) == 0)
+            if (this.selector.select(3000) == 0) {
                 continue;
-
+            }
+            SelectionKey actualKey = null;
             //work on selected keys
             Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
             while (keys.hasNext()) {
                 SelectionKey key = keys.next();
+                keys.remove();
 
-                // this is necessary to prevent the same key from coming up
-                // again the next time around.
-
-
-                System.out.println(key);
                 if (!key.isValid()) {
                     continue;
                 }
-
-
                 // FIXME: Check for different connections
                 if (key.isAcceptable()) {
 
                     if (key.channel() == this.adminChannel){
-                        System.out.println("something");
                         this.adminHandler.accept(key, this.selector);
                     } else {
                         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
                         this.accept(key, this.selector);
                     }
-
-                    //this.handlers.put((SelectionKey)((SortedSet)key.selector().keys()).last(), new XMPPHandler(this.selector));
-                    //System.out.println("A ver el Key Channel" + (SelectionKey)((SortedSet)key.selector().keys()).last());
-
                 } else if (key.isReadable()) {
-                    ConnectionImpl aa =  (ConnectionImpl) key.attachment();
-                    //System.out.println("A ver el Key Channel 2" + (SelectionKey)((SortedSet)key.selector().keys()).last());
-                    //this.handlers.get((SelectionKey)((SortedSet)key.selector().keys()).last()).read(key);
 
                     if (key.channel() == this.adminChannel){
                         System.out.println("something");
@@ -136,7 +123,6 @@ public class SocketServer {
                     }
 
                 }
-                keys.remove();
             }
         }
     }
@@ -154,10 +140,10 @@ public class SocketServer {
     private void accept(SelectionKey key, Selector selector) throws IOException{
 
         ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key, selector));
-        actualConnection.setServerChannel(serverChannel.accept());
-
+        key.attach(actualConnection);
 
         connections.put(actualConnection.getClientChannel(), actualConnection);
+
     }
 
 }
