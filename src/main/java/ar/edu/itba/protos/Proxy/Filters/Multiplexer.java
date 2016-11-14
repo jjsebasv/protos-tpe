@@ -8,13 +8,13 @@ import java.util.Map;
  */
 public class Multiplexer {
 
-    public static Map<String,String> mplexer= new HashMap<>();
+    public static Map<String,String> mplexer = new HashMap<>();
 
-    public static void multiplex(String user, String server){
+    public static void multiplex(String user, String server) {
         mplexer.put(user,server);
     }
 
-    public static void unplex(String user){
+    public static void unplex(String user) {
         mplexer.remove(user);
     }
 
