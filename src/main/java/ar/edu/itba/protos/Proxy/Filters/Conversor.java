@@ -1,5 +1,7 @@
 package ar.edu.itba.protos.Proxy.Filters;
 
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
+
 /**
  * Created by sebastian on 10/16/16.
  * Leet conversor
@@ -43,18 +45,23 @@ public class Conversor {
             switch (characters.charAt(i)) {
                 case 'a':
                     stringBuffer.append("4");
+                    Metrics.getInstance().addConvertedCharacter();
                     break;
                 case 'e':
                     stringBuffer.append("3");
+                    Metrics.getInstance().addConvertedCharacter();
                     break;
                 case 'i':
                     stringBuffer.append("1");
+                    Metrics.getInstance().addConvertedCharacter();
                     break;
                 case 'o':
                     stringBuffer.append("0");
+                    Metrics.getInstance().addConvertedCharacter();
                     break;
                 case 'c':
                     stringBuffer.append("<");
+                    Metrics.getInstance().addConvertedCharacter();
                     break;
                 default:
                     stringBuffer.append(characters.charAt(i));

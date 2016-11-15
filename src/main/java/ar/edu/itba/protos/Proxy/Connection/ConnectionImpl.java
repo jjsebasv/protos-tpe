@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.Proxy.Connection;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 
 import java.io.IOException;
 
@@ -165,7 +166,7 @@ public class ConnectionImpl implements Connection {
         this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
 
         try {
-            channel.write(this.onlyBuffer);
+            Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));
         } catch (IOException e) {
             // TODO: Handle Exception and log it
             logger.error("Error while writing");

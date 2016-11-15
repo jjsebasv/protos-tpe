@@ -11,6 +11,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
+
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import org.xml.sax.helpers.DefaultHandler;
 
 
@@ -97,56 +99,86 @@ public class AdminHandler extends DefaultHandler {
 
         int response = parser.parseCommand(buffer, bytesRead, this.logged);
         switch (response) {
+            case 0:
+                channel.write(ByteBuffer.wrap("OK\n".getBytes()));
+                channel.write(ByteBuffer.wrap("**********************************************************************************\n".getBytes()));
+                channel.write(ByteBuffer.wrap("Welcome to HELP.\n These are your available commands\n".getBytes()));
+                channel.write(ByteBuffer.wrap("LOG [username] [password] - Log in\n".getBytes()));
+                channel.write(ByteBuffer.wrap("LEET_ON - Turn on the Leet Converter\n".getBytes()));
+                channel.write(ByteBuffer.wrap("LEET_OFF - Turn off the Leet Converter\n".getBytes()));
+                channel.write(ByteBuffer.wrap("LOG_OUT - Log out\n".getBytes()));
+                channel.write(ByteBuffer.wrap("BLOCK [username] - Blocks the given username\n".getBytes()));
+                channel.write(ByteBuffer.wrap("UNBLOCK [username] - Unblocks the given username\n".getBytes()));
+                channel.write(ByteBuffer.wrap("MULTIPLEX [username] [server] - Multiplexes the given userneme to the given server\n".getBytes()));
+                channel.write(ByteBuffer.wrap("UNPLEX [username] - Unplexes the given username\n".getBytes()));
+                channel.write(ByteBuffer.wrap("PASSCHANGE [username] [new password] - Sets the new password to the given username\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ACCESSES - * METRICS * Returns the ammount of accesses\n".getBytes()));
+                channel.write(ByteBuffer.wrap("BLOCKED - * METRICS * Returns the ammount of blocked messages\n".getBytes()));
+                channel.write(ByteBuffer.wrap("BYTES_SENT - * METRICS * Returns the amount of bytes sent\n".getBytes()));
+                channel.write(ByteBuffer.wrap("BYTES_RECEIVED - * METRICS * Returns the amount of bytes received\n".getBytes()));
+                channel.write(ByteBuffer.wrap("CHARACTERS_CONVERTED - * METRICS * Returns the amount of characters converted\n".getBytes()));
+                channel.write(ByteBuffer.wrap("**********************************************************************************\n".getBytes()));
+                break;
             case 1: // Wrong username
-                channel.write(ByteBuffer.wrap("Invalid Username!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, Invalid Username!\n".getBytes()));
                 break;
             case 2: // Wrong pass
-                channel.write(ByteBuffer.wrap("Invalid Pass!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, Invalid Pass!\n".getBytes()));
                 break;
             case 3: // Connected
                 logged = true;
-                channel.write(ByteBuffer.wrap("Logged in!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, Logged in!\n".getBytes()));
                 break;
             case 4: // Enable leet
                 Conversor.applyLeet = true;
-                channel.write(ByteBuffer.wrap("4pply1ng l33t\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, 4pply1ng l33t!\n".getBytes()));
                 break;
             case 5:
                 Conversor.applyLeet = false;
-                channel.write(ByteBuffer.wrap("Leet disabled\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, Leet disabled!\n".getBytes()));
                 break;
             case 7:
-                channel.write(ByteBuffer.wrap("Good Bye!!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, Good Bye!\n".getBytes()));
                 channel.close();
                 key.cancel();
                 return;
             case 8:
-                channel.write(ByteBuffer.wrap("User blocked!!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, User blocked!\n".getBytes()));
                 return;
             case 9:
-                channel.write(ByteBuffer.wrap("User unblocked!!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, User unblocked!\n".getBytes()));
                 return;
             case 10:
-                channel.write(ByteBuffer.wrap("User redirected!!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, User redirected!\n".getBytes()));
                 return;
             case 11:
-                channel.write(ByteBuffer.wrap("User unplexed!!\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, User unplexed!\n".getBytes()));
                 return;
             case 12:
-                channel.write(ByteBuffer.wrap("Password changed succesfully\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, Password changed succesfully!\n".getBytes()));
                 return;
+            case 13:
+                channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of total accesses: %d\n", Metrics.getInstance().getTotalAccesses()).getBytes()));
+            case 14:
+                channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of blocked messages: %d\n", Metrics.getInstance().getBlockedMessages()).getBytes()));
+            case 15:
+                channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of bytes sent: %d\n", Metrics.getInstance().getReceivedBytes()).getBytes()));
+            case 16:
+                channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of bytes received: %d\n", Metrics.getInstance().getReceivedBytes()).getBytes()));
+            case 17:
+                channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of converted characters: %d\n", Metrics.getInstance().getConvertedCharacters()).getBytes()));
             case -2: // You are not logged in
-                channel.write(ByteBuffer.wrap("You're not logged in\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, You're not logged in!\n".getBytes()));
                 break;
             case -3:
-                channel.write(ByteBuffer.wrap("Unexisting admin user\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, Unexisting admin user!\n".getBytes()));
                 break;
             case -4:
-                channel.write(ByteBuffer.wrap("Password does not match\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, Password does not match!\n".getBytes()));
                 break;
             default: // wrong command
                 // FIXME: What do we do with this? How do we allow to write something ese once is wrong?
-                channel.write(ByteBuffer.wrap("WRONG COMMAND\n".getBytes()));
+                channel.write(ByteBuffer.wrap("OK, Wrong command\n".getBytes()));
                 buffer.clear();
                 break;
                 /*                 logger.error("Lost connection with the admin");

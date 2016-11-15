@@ -5,6 +5,7 @@ import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
 import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import ar.edu.itba.protos.Stanza.Stanza;
 
 import org.jsoup.Jsoup;
@@ -67,6 +68,7 @@ public class XMPPHandler extends DefaultHandler {
     */
     public Connection handleAccept(SelectionKey key, Selector selector) throws IOException {
         ConnectionImpl connection = new ConnectionImpl(selector);
+        Metrics.getInstance().addAccess();
 
         System.out.println("TESTER: " +  ((ServerSocketChannel)key.channel()).socket().getLocalSocketAddress());
 
@@ -133,6 +135,7 @@ public class XMPPHandler extends DefaultHandler {
             return;
         }
 
+        Metrics.getInstance().addReceivedBytes(read);
         byte[] data = new byte[read];
         System.arraycopy(buffer.array(), 0, data, 0, read);
         String stringRead = new String(data);

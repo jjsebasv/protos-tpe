@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.Proxy.Filters;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class Blocker {
             System.out.println("to: " + toUser);
             if ( (fromUser != null && user.equals(fromUser)) || (toUser != null && user.equals(toUser)) ) {
                 System.out.println("TENEMOS QUE BLOCKEAR");
+                Metrics.getInstance().addBlockedMessages();
                 return true;
             }
         }

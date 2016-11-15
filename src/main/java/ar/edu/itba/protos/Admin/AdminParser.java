@@ -36,7 +36,6 @@ public class AdminParser {
         comNumber.put("passchange",3);
         adminBeta.put("sebas-admin@protos-tpe","123456789");
 
-
     }
 
     /**
@@ -55,10 +54,13 @@ public class AdminParser {
 
         String fullCommand = new String(readBuffer.array()).substring(0, bytesRead);
         String commands[] = fullCommand.split(" ");
+        if(commands[0].equals("HELP\n")) {
+            return 0;
+        }
+
         if(!logged && !commands[0].equals("LOG")) {
             return -2;
         }
-
 
         if(comNumber.containsKey(commands[0].toLowerCase()) && commands.length == comNumber.get(commands[0].toLowerCase())) {
             switch (commands[0].toString().toUpperCase()) {
@@ -67,11 +69,11 @@ public class AdminParser {
                         return -1;
                     }
                     return login(commands[1], commands[2]);
-                case "LEETON\n":
+                case "LEET_ON\n":
                     return 4;
-                case "LEETOFF\n":
+                case "LEET_OFF\n":
                     return 5;
-                case "LOGOUT\n":
+                case "LOG_OUT\n":
                     return 7;
                 case "BLOCK":
                     if (commands[1] == null) {
@@ -89,11 +91,21 @@ public class AdminParser {
                     return uplex(commands[1]);
                 case "PASSCHANGE":
                     return cPass(commands[1],commands[2],commands[3]);
+                case "ACCESSES":
+                    return 13;
+                case "BLOCKED":
+                    return 14;
+                case "BYTES_SENT":
+                    return 15;
+                case "BYTES_RECEIVED":
+                    return 16;
+                case "CHARACTERS_CONVERTED":
+                    return 17;
                 default:
                     return -1;
 
             }
-        }else{
+        } else {
             return -1;
         }
     }
