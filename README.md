@@ -1,6 +1,15 @@
-## `Admin` is the base branch
-
 # protos-tpe
+
+## Installation and execution
+
+Clone repository or download
+
+Execute:
+
+mvn install
+
+mvn exec:java
+
 
 ## Test Plan
  * Descargar Prosody (Server)
