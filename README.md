@@ -1,5 +1,3 @@
-## `Admin` is the base branch
-
 # protos-tpe
 
 ## Test Plan
