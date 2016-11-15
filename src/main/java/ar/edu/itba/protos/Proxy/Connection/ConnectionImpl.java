@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.Proxy.Connection;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 
 import java.io.IOException;
 
@@ -28,6 +29,8 @@ public class ConnectionImpl implements Connection {
 
     private String serverName;
     private String clientName;
+
+    private boolean applyLeet = false;
 
     public ByteBuffer onlyBuffer;
 
@@ -124,6 +127,18 @@ public class ConnectionImpl implements Connection {
         return this.serverName;
     }
 
+    public void enableLeet() {
+        this.applyLeet = true;
+    }
+
+    public void disableLeet() {
+        this.applyLeet = false;
+    }
+
+    public boolean applyLeet() {
+        return this.applyLeet;
+    }
+
     public Selector getSelector() {
         return this.selector;
     }
@@ -151,7 +166,7 @@ public class ConnectionImpl implements Connection {
         this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
 
         try {
-            channel.write(this.onlyBuffer);
+            Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));
         } catch (IOException e) {
             // TODO: Handle Exception and log it
             logger.error("Error while writing");

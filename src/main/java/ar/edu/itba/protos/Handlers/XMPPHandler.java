@@ -5,6 +5,7 @@ import ar.edu.itba.protos.Proxy.Connection.Connection;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
 import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
+import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import ar.edu.itba.protos.Stanza.Stanza;
 
 import org.jsoup.Jsoup;
@@ -67,6 +68,7 @@ public class XMPPHandler extends DefaultHandler {
     */
     public Connection handleAccept(SelectionKey key, Selector selector) throws IOException {
         ConnectionImpl connection = new ConnectionImpl(selector);
+        Metrics.getInstance().addAccess();
 
         System.out.println("TESTER: " +  ((ServerSocketChannel)key.channel()).socket().getLocalSocketAddress());
 
@@ -111,43 +113,47 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     public void read(SelectionKey key) throws IOException {
+
         if (key.attachment() != null) {
             this.actualConnection = (ConnectionImpl) key.attachment();
         }
+
+
         boolean shouldSend = true;
 
         ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
 
         SocketChannel channel = (SocketChannel) key.channel();
         int read = -1;
+
         read = channel.read(buffer);
 
         // TODO: What's the difference bet 0 and 1?
         if (read == -1) {
-            logger.info("Connection clossed by " + channel.socket().getRemoteSocketAddress());
+            logger.warn("Connection clossed by " + channel.socket().getRemoteSocketAddress());
             channel.close();
             key.cancel();
             return;
         }
 
+        Metrics.getInstance().addReceivedBytes(read);
         byte[] data = new byte[read];
         System.arraycopy(buffer.array(), 0, data, 0, read);
         String stringRead = new String(data);
         String toSendString = stringRead;
         logger.info("Message received: " + stringRead);
 
-        Document doc = Jsoup.parse(stringRead, "UTF-8", Parser.xmlParser());
-
-        // This is to check if the message has a body, hence if its a message
-        if (doc != null && doc.body() != null) {
-            if(Conversor.leet()) {
-                // TODO: Should use Stanzas here?
-                toSendString = doc.text(Conversor.apply(doc.text()).toString()).toString();
+        if(Conversor.applyLeet) {
+            // TODO: Should use Stanzas here?
+            String auxiliar = Conversor.findAndConvert(stringRead);
+            if (auxiliar != null) {
+              toSendString = auxiliar;
             }
-            shouldSend = !Blocker.apply(doc.toString());
         }
 
-        if(shouldSend){
+        shouldSend = !Blocker.apply(stringRead.toString());
+
+        if(shouldSend) {
             handleSendMessage(toSendString, channel);
         }
 
@@ -206,7 +212,7 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     private void writeInChannel(String s, SocketChannel channel) {
-        this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
+            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
     }
 
     /**
