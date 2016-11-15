@@ -8,7 +8,7 @@ import ar.edu.itba.protos.Proxy.Metrics.Metrics;
  */
 public class Conversor {
 
-    public static boolean applyLeet = true;
+    public static boolean applyLeet = false;
 
     public static String findAndConvert(String s) {
         int message = s.indexOf("<message");

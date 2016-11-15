@@ -58,56 +58,63 @@ public class AdminParser {
             return 0;
         }
 
+
         if(!logged && !commands[0].equals("LOG")) {
+            System.out.println(fullCommand);
             return -2;
         }
-
-        if(comNumber.containsKey(commands[0].toLowerCase()) && commands.length == comNumber.get(commands[0].toLowerCase())) {
-            switch (commands[0].toString().toUpperCase()) {
-                case "LOG":
-                    if (commands[1] == null || commands[2] == null) {
-                        return -1;
-                    }
-                    return login(commands[1], commands[2]);
-                case "LEET_ON\n":
-                    return 4;
-                case "LEET_OFF\n":
-                    return 5;
-                case "LOG_OUT\n":
-                    return 7;
-                case "BLOCK":
-                    if (commands[1] == null) {
-                        return -1;
-                    }
-                    return block(commands[1]);
-                case "UNBLOCK":
-                    if (commands[1] == null) {
-                        return -1;
-                    }
-                    return unblock(commands[1]);
-                case "MULTIPLEX":
-                    return mplex(commands[1],commands[2]);
-                case "UNPLEX":
-                    return uplex(commands[1]);
-                case "PASSCHANGE":
-                    return cPass(commands[1],commands[2],commands[3]);
-                case "ACCESSES":
-                    return 13;
-                case "BLOCKED":
-                    return 14;
-                case "BYTES_SENT":
-                    return 15;
-                case "BYTES_RECEIVED":
-                    return 16;
-                case "CHARACTERS_CONVERTED":
-                    return 17;
-                default:
+        System.out.println(commands);
+        switch (commands[0].toString().toUpperCase()) {
+            case "LOG":
+                if (commands[1] == null || commands[2] == null) {
                     return -1;
+                }
+                return login(commands[1], commands[2]);
+            case "LEET_ON\n":
+                return 4;
+            case "LEET_OFF\n":
+                return 5;
+            case "LOG_OUT\n":
+                return 7;
+            case "BLOCK":
+                if (commands[1] == null) {
+                    return -1;
+                }
+                return block(commands[1]);
+            case "UNBLOCK":
+                if (commands[1] == null) {
+                    return -1;
+                }
+                return unblock(commands[1]);
+            case "MULTIPLEX":
+                return mplex(commands[1],commands[2]);
+            case "UNPLEX":
+                return uplex(commands[1]);
+            case "PASSCHANGE":
+                return cPass(commands[1],commands[2],commands[3]);
+            case "ACCESSES\n":
+                return 13;
+            case "BLOCKED\n":
+                return 14;
+            case "BYTES_SENT\n":
+                return 15;
+            case "BYTES_RECEIVED\n":
+                return 16;
+            case "CHARACTERS_CONVERTED\n":
+                return 17;
+            default:
+                return -1;
 
-            }
-        } else {
-            return -1;
         }
+
+        // FIXME: This is not working
+        /*
+            if(comNumber.containsKey(commands[0].toLowerCase()) && commands.length == comNumber.get(commands[0].toLowerCase())) {
+                // Here goes <code></code>
+            } else {
+                return -1;
+            }
+        */
     }
 
     /**
