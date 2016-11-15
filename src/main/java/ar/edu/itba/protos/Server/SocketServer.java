@@ -108,14 +108,14 @@ public class SocketServer {
                 if (key.isAcceptable()) {
 
                     if (key.channel() == this.adminChannel){
-                        this.adminHandler.accept(key, this.selector);
+                        this.adminChannel = this.adminHandler.accept(key, this.selector);
                     } else {
                         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
                         this.accept(key, this.selector);
                     }
                 } else if (key.isReadable()) {
 
-                    if (key.channel() == this.adminChannel){
+                    if (((SocketChannel)key.channel()).getLocalAddress().equals(this.adminChannel.getLocalAddress())){
                         System.out.println("something");
                         this.adminHandler.read(key);
                     } else {

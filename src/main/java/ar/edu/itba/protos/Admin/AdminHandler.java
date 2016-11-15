@@ -1,16 +1,19 @@
 package ar.edu.itba.protos.Admin;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
+import ar.edu.itba.protos.Proxy.Connection.AdminConnectionImpl;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import org.xml.sax.helpers.DefaultHandler;
@@ -30,6 +33,8 @@ public class AdminHandler extends DefaultHandler {
     private XmppLogger logger = XmppLogger.getInstance();
     private Selector selector;
 
+    private ConcurrentHashMap<SocketChannel, AdminConnectionImpl> connections = new ConcurrentHashMap<SocketChannel, AdminConnectionImpl>();
+
     public AdminHandler(Selector selector) {
         config = new HashMap<>();
         parser = new AdminParser();
@@ -48,27 +53,28 @@ public class AdminHandler extends DefaultHandler {
      *
      */
 
-    public void accept(SelectionKey key, Selector selector) throws IOException {
+    public ServerSocketChannel accept(SelectionKey key, Selector selector) throws IOException {
 
         logger.info("New admin connected");
         System.out.println("hey, new admin!");
 
+        ServerSocketChannel keyChannel = (ServerSocketChannel) key.channel();
+        SocketChannel newChannel = keyChannel.accept();
+        newChannel.configureBlocking(false);
+        Socket socket = newChannel.socket();
+        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+        SocketAddress localAddr = socket.getLocalSocketAddress();
+        newChannel.register(selector, SelectionKey.OP_READ);
+        AdminConnectionImpl adminConnection = new AdminConnectionImpl(newChannel);
+        connections.put(newChannel, adminConnection);
+
+
         ConnectionImpl connection = new ConnectionImpl(selector);
 
-
-        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
-        SocketChannel clientChannel = serverSocketChannel.accept();
-        Socket socket = clientChannel.socket();
-
         logger.info("Connected to: " + socket.getRemoteSocketAddress());
-        clientChannel.configureBlocking(false);
-        clientChannel.register(key.selector(), SelectionKey.OP_READ, connection);
 
-        connection.setClientChannel(clientChannel);
-        connection.setClientKey(key);
-
-
-        config.put(clientChannel, ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
+        config.put(newChannel, ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
+        return keyChannel;
     }
 
     /**
@@ -102,7 +108,7 @@ public class AdminHandler extends DefaultHandler {
             case 0:
                 channel.write(ByteBuffer.wrap("OK\n".getBytes()));
                 channel.write(ByteBuffer.wrap("**********************************************************************************\n".getBytes()));
-                channel.write(ByteBuffer.wrap("Welcome to HELP.\n These are your available commands\n".getBytes()));
+                channel.write(ByteBuffer.wrap("Welcome to HELP.\nThese are your available commands\n".getBytes()));
                 channel.write(ByteBuffer.wrap("LOG [username] [password] - Log in\n".getBytes()));
                 channel.write(ByteBuffer.wrap("LEET_ON - Turn on the Leet Converter\n".getBytes()));
                 channel.write(ByteBuffer.wrap("LEET_OFF - Turn off the Leet Converter\n".getBytes()));
@@ -141,32 +147,37 @@ public class AdminHandler extends DefaultHandler {
                 channel.write(ByteBuffer.wrap("OK, Good Bye!\n".getBytes()));
                 channel.close();
                 key.cancel();
-                return;
+                break;
             case 8:
                 channel.write(ByteBuffer.wrap("OK, User blocked!\n".getBytes()));
-                return;
+                break;
             case 9:
                 channel.write(ByteBuffer.wrap("OK, User unblocked!\n".getBytes()));
-                return;
+                break;
             case 10:
                 channel.write(ByteBuffer.wrap("OK, User redirected!\n".getBytes()));
-                return;
+                break;
             case 11:
                 channel.write(ByteBuffer.wrap("OK, User unplexed!\n".getBytes()));
-                return;
+                break;
             case 12:
                 channel.write(ByteBuffer.wrap("OK, Password changed succesfully!\n".getBytes()));
-                return;
+                break;
             case 13:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of total accesses: %d\n", Metrics.getInstance().getTotalAccesses()).getBytes()));
+                break;
             case 14:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of blocked messages: %d\n", Metrics.getInstance().getBlockedMessages()).getBytes()));
+                break;
             case 15:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of bytes sent: %d\n", Metrics.getInstance().getReceivedBytes()).getBytes()));
+                break;
             case 16:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of bytes received: %d\n", Metrics.getInstance().getReceivedBytes()).getBytes()));
+                break;
             case 17:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of converted characters: %d\n", Metrics.getInstance().getConvertedCharacters()).getBytes()));
+                break;
             case -2: // You are not logged in
                 channel.write(ByteBuffer.wrap("ERROR, You're not logged in!\n".getBytes()));
                 break;
@@ -177,8 +188,9 @@ public class AdminHandler extends DefaultHandler {
                 channel.write(ByteBuffer.wrap("ERROR, Password does not match!\n".getBytes()));
                 break;
             default: // wrong command
+                System.out.println("This is the message " + response);
                 // FIXME: What do we do with this? How do we allow to write something ese once is wrong?
-                channel.write(ByteBuffer.wrap("OK, Wrong command\n".getBytes()));
+                channel.write(ByteBuffer.wrap("ERROR, Wrong command\n".getBytes()));
                 buffer.clear();
                 break;
                 /*                 logger.error("Lost connection with the admin");
@@ -188,7 +200,7 @@ public class AdminHandler extends DefaultHandler {
                 return;
                 */
         }
-
+        buffer.clear();
         return;
     }
 
