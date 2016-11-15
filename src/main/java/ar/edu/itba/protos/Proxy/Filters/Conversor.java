@@ -60,7 +60,7 @@ public class Conversor {
                     Metrics.getInstance().addConvertedCharacter();
                     break;
                 case 'c':
-                    stringBuffer.append("<");
+                    stringBuffer.append("&lt;");
                     Metrics.getInstance().addConvertedCharacter();
                     break;
                 default:
