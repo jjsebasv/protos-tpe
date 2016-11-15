@@ -178,7 +178,7 @@ VirtualHost "test.com"
 
 -- Set up a SOCKS5 bytestream proxy for server-proxied file transfers:
 Component "proxy.example.com" "proxy65"
-proxy65_ports = { 5223 }
+proxy65_ports = { 5225 }
 proxy65_interfaces = { "127.0.0.1" }
 
 
