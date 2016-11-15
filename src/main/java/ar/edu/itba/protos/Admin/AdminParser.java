@@ -5,10 +5,7 @@ import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Proxy.Filters.Multiplexer;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by sebastian on 10/27/16.
@@ -63,10 +60,10 @@ public class AdminParser {
             System.out.println(fullCommand);
             return -2;
         }
-        System.out.println(commands);
-        switch (commands[0].toString().toUpperCase()) {
+        System.out.println(Arrays.toString(commands));
+        switch (commands[0].toUpperCase()) {
             case "LOG":
-                if (commands[1] == null || commands[2] == null) {
+                if (commands.length != 3) {
                     return -1;
                 }
                 return login(commands[1], commands[2]);
@@ -77,20 +74,29 @@ public class AdminParser {
             case "LOG_OUT\n":
                 return 7;
             case "BLOCK":
-                if (commands[1] == null) {
+                if (commands.length != 2) {
                     return -1;
                 }
                 return block(commands[1]);
             case "UNBLOCK":
-                if (commands[1] == null) {
+                if (commands.length != 2) {
                     return -1;
                 }
                 return unblock(commands[1]);
             case "MULTIPLEX":
+                if (commands.length != 3) {
+                    return -1;
+                }
                 return mplex(commands[1],commands[2]);
             case "UNPLEX":
+                if (commands.length != 2) {
+                    return -1;
+                }
                 return uplex(commands[1]);
             case "PASSCHANGE":
+                if (commands.length != 4) {
+                    return -1;
+                }
                 return cPass(commands[1],commands[2],commands[3]);
             case "ACCESSES\n":
                 return 13;
