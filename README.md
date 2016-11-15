@@ -1,3 +1,5 @@
+## `Admin` is the base branch
+
 # protos-tpe
 
 ## Test Plan
@@ -21,4 +23,3 @@
  * Conectar el usuario al proxy y un usuario directamente al server
  * Agregar un buddy
  * Empezar a hablar
- 
