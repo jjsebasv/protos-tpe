@@ -29,26 +29,41 @@ public class Blocker {
         }
 
         int toIndex = s.indexOf("to=");
-        int untilTo = s.indexOf('/', toIndex);
+        int untilTo = s.indexOf(' ', toIndex);
         if (fromIndex != -1) {
-            toUser = s.substring(toIndex+4, untilTo);
+            toUser = s.substring(toIndex+4, untilTo-1);
         }
 
         for (String user : blockedUsers) {
             System.out.println(user);
             System.out.println("from: " + fromUser);
             System.out.println("to: " + toUser);
-            if ( (fromUser != null && user.equals(fromUser)) || (toUser != null && user.equals(toUser)) ) {
-                System.out.println("TENEMOS QUE BLOCKEAR");
-                Metrics.getInstance().addBlockedMessages();
-                return true;
+            if (fromUser != null) {
+                if (user.equals(fromUser)) {
+                    block(user);
+                    return true;
+                }
+            }
+
+            if (toUser != null) {
+                if (user.equals(toUser)) {
+                    block(user);
+                    return true;
+                }
             }
         }
         return false;
     }
 
+    private static void block(String user) {
+        logger.info("blocking message due to user " + user);
+        System.out.println("TENEMOS QUE BLOCKEAR");
+        Metrics.getInstance().addBlockedMessages();
+    }
+
     public static void remove(String s) {
         if(blockedUsers.indexOf(s) >= 0){
+            s = s.replace("\n", "").replace("\r", "");
             logger.info("removing " + s + " from the blocking list");
             blockedUsers.remove(s);
         }
@@ -56,6 +71,7 @@ public class Blocker {
 
     public static void add (String s) {
         if(blockedUsers.indexOf(s) == -1){
+            s = s.replace("\n", "").replace("\r", "");
             logger.info("adding " + s + " to the blocking list");
             blockedUsers.add(s);
         }
