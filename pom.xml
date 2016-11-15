@@ -42,7 +42,12 @@
             <version>1.8.3</version>
         </dependency>
 
-        <!-- Org Json -->
+        <!-- Org Json -->        
+        <dependency>
+          <groupId>org.json</groupId>
+          <artifactId>json</artifactId>
+          <version>20090211</version>
+        </dependency>
 
 
         <!-- Log back -->
@@ -56,12 +61,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>1.1.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20090211</version>
         </dependency>
 
 
