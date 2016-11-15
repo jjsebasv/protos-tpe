@@ -121,7 +121,6 @@ public class SocketServer {
                     } else {
                         xmppHandler.read(key);
                     }
-
                 }
             }
         }

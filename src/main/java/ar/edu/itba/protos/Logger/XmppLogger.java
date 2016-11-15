@@ -31,6 +31,15 @@ public class XmppLogger {
         logger.error(message);
     }
 
+    /**
+     * Set a log with type WARNING
+     * @param message
+     */
+    public void warn(String message) {
+        System.out.println("WARNING: " + message);
+        logger.warn(message);
+    }
+
     private XmppLogger() throws IOException {
         logger = LoggerFactory.getLogger(XmppLogger.class);
     }

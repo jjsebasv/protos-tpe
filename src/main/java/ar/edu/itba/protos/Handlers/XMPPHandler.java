@@ -113,6 +113,7 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     public void read(SelectionKey key) throws IOException {
+
         if (key.attachment() != null) {
             this.actualConnection = (ConnectionImpl) key.attachment();
         }
@@ -129,7 +130,7 @@ public class XMPPHandler extends DefaultHandler {
 
         // TODO: What's the difference bet 0 and 1?
         if (read == -1) {
-            logger.info("Connection clossed by " + channel.socket().getRemoteSocketAddress());
+            logger.warn("Connection clossed by " + channel.socket().getRemoteSocketAddress());
             channel.close();
             key.cancel();
             return;
@@ -152,7 +153,7 @@ public class XMPPHandler extends DefaultHandler {
 
         shouldSend = !Blocker.apply(stringRead.toString());
 
-        if(shouldSend){
+        if(shouldSend) {
             handleSendMessage(toSendString, channel);
         }
 
