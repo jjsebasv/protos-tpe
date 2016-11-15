@@ -46,6 +46,10 @@ public class Blocker {
             }
 
             if (toUser != null) {
+                int serverIndex = toUser.indexOf('/');
+                if (serverIndex != -1) {
+                    toUser = toUser.substring(0, serverIndex);
+                }
                 if (user.equals(toUser)) {
                     block(user);
                     return true;

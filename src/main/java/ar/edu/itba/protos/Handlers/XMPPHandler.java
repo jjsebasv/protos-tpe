@@ -8,9 +8,6 @@ import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import ar.edu.itba.protos.Stanza.Stanza;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
