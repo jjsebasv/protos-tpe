@@ -8,7 +8,7 @@ Execute:
 
 mvn install
 
-mvn exec:java
+mvn exec:java -Dexec.mainClass="ar.edu.itba.protos.Server.SocketServer"
 
 
 ## Test Plan
