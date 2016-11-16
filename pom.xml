@@ -93,7 +93,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>ar.edu.itba.pdc.tcp.proxy.XMPPProxy</mainClass>
+                            <mainClass>ar.edu.itba.protos.Server.SocketServer</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

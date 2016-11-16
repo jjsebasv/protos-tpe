@@ -32,8 +32,8 @@ public class XMPPHandler extends DefaultHandler {
      * Is needed to add 'protos-server' to de hosts file
      * Relate it to localhost (it's just a name) -> We could change it
      */
-    private static final int CONNECT_PORT = 5228;
-    private static final String CONNECT_SERVER = "protos-tpe";
+    private static final int CONNECT_PORT = 5222;
+    private static final String CONNECT_SERVER = "10.1.34.214";
 
     private static final int DEFAULT_BUFFER_SIZE = 1024*100;
 

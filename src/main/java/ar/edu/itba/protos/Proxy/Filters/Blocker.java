@@ -24,13 +24,13 @@ public class Blocker {
 
         int fromIndex = s.indexOf("from=");
         int untilFrom = s.indexOf('/', fromIndex);
-        if (fromIndex != -1) {
+        if (fromIndex != -1 && untilFrom != -1) {
             fromUser = s.substring(fromIndex+6, untilFrom);
         }
 
         int toIndex = s.indexOf("to=");
         int untilTo = s.indexOf(' ', toIndex);
-        if (fromIndex != -1) {
+        if (fromIndex != -1 && untilTo != -1) {
             toUser = s.substring(toIndex+4, untilTo-1);
         }
 
