@@ -2,6 +2,7 @@ package ar.edu.itba.protos.Proxy.Connection;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
+import ar.edu.itba.protos.Stanza.Stanza;
 
 import java.io.IOException;
 
@@ -33,6 +34,8 @@ public class ConnectionImpl implements Connection {
     private boolean applyLeet = false;
 
     public ByteBuffer onlyBuffer;
+
+    public Stanza stanza;
 
     private XmppLogger logger = XmppLogger.getInstance();
 

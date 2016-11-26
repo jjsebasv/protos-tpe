@@ -18,6 +18,15 @@ public class Blocker {
 
     public static List<String> getBlockedUsers() {return blockedUsers;}
 
+    /**
+        Receives an xml string and decides if the message should be sent.
+        If the message contains either in the from or the to a blocked
+        user, then the function returns true.
+
+        @return whether the message should be blocked or not
+        @param s the xml string
+     **/
+
     public static boolean apply(String s) {
         String fromUser = null;
         String toUser = null;
