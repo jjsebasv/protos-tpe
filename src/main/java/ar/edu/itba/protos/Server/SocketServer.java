@@ -128,7 +128,7 @@ public class SocketServer {
                     }
                 } else if (key.isWritable()) {
                     System.out.println(key);
-                    xmppHandler.write(key, keys);
+                    xmppHandler.write(key);
                 }
             }
         }

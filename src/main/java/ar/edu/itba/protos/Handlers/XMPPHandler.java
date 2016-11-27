@@ -92,7 +92,6 @@ public class XMPPHandler extends DefaultHandler {
 
         connection.setClientChannel(clientChannel);
         connection.setClientKey(key);
-        connection.setWriteBuffer(ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
 
         return connection;
     }
@@ -133,7 +132,7 @@ public class XMPPHandler extends DefaultHandler {
             key.cancel();
             return;
         } else if (read > 0) {
-
+            key.interestOps(SelectionKey.OP_WRITE);
             Metrics.getInstance().addReceivedBytes(read);
 
             byte[] data = new byte[read];
@@ -153,7 +152,7 @@ public class XMPPHandler extends DefaultHandler {
             if(stanza.isAccepted()) {
                 //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
                 //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                handleSendMessage(channel);
+                //handleSendMessage(channel);
             }
 
         } else {
@@ -161,50 +160,21 @@ public class XMPPHandler extends DefaultHandler {
         }
     }
 
-    public void write(SelectionKey key, Iterator<SelectionKey> a) {
+    public void write(SelectionKey key) throws IOException {
         if (key.attachment() != null) {
             this.actualConnection = (ConnectionImpl) key.attachment();
         }
+        SocketChannel channel = (SocketChannel) key.channel();
+        SocketChannel clientchannel = this.actualConnection.getClientChannel();
+        SocketChannel serverchannel = this.actualConnection.getServerChannel();
 
-        ByteBuffer writeBuffer = this.actualConnection.getWriteBuffer();
-
-        if (!writeBuffer.hasRemaining()) {
-            writeBuffer.clear();
-            writeBuffer.flip();
-            if (!writeBuffer.hasRemaining()) {
-                key.interestOps(SelectionKey.OP_READ);
-                return;
-            }
+        if(!channel.equals(clientchannel) && !channel.equals(serverchannel) && channel.getRemoteAddress().equals(serverchannel.getRemoteAddress())) {
+            this.actualConnection.setServerChannel(serverchannel);
         }
-
-        System.out.println("writing to server: " + this.actualConnection.getClientChannel());
-        String s = new String(writeBuffer.array());
-        System.out.println(s.substring(writeBuffer.position(), writeBuffer.limit()));
-        System.out.println();
 
         handleSendMessage((SocketChannel)key.channel());
-
-        /*
-        try {
-            ((SocketChannel) key.channel()).write(writeBuffer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        SelectionKey key1 = this.actualConnection.getClientKey();
-        SelectionKey key2 = this.actualConnection.getServerKey();
-        SelectionKey key3 = key;
-        handleSendMessage(((ConnectionImpl) key.attachment()).staza.getXml(), (SocketChannel) key.channel());
-
-        ByteBuffer buffer = ((ConnectionImpl)key.attachment()).onlyBuffer;
-        try {
-            ((SocketChannel) key.channel()).write(buffer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        buffer.clear();
-        */
+        key.interestOps(SelectionKey.OP_READ);
+        //((SocketChannel) key.channel()).write(writeBuffer);
 
     }
 

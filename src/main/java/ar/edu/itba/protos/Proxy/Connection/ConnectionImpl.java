@@ -100,7 +100,10 @@ public class ConnectionImpl implements Connection {
     }
 
     public SelectionKey getClientKey() {
-        return this.clientKey;
+        if (this.clientChannel.keyFor(this.selector) == null) {
+            return null;
+        }
+        return this.clientChannel.keyFor(this.selector);
     }
 
     public void setClientKey(SelectionKey key) {
@@ -108,7 +111,10 @@ public class ConnectionImpl implements Connection {
     }
 
     public SelectionKey getServerKey() {
-        return this.serverKey;
+        if (this.serverChannel.keyFor(this.selector) == null) {
+            return null;
+        }
+        return this.serverChannel.keyFor(this.selector);
     }
 
     public void setClientChannel(SocketChannel channel) {
