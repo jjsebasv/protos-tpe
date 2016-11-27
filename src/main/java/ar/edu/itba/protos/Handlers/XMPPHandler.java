@@ -156,6 +156,12 @@ public class XMPPHandler extends DefaultHandler {
             logger.info("Message received: " + stringRead);
             actualConnection.stanza = stanza;
 
+
+            this.actualConnection.setReadBuffer(ByteBuffer.wrap(stanza.getXml().getBytes()));
+
+            String sss = new String(this.actualConnection.getReadBuffer().array(), "UTF-8");
+            System.out.println(sss);
+
             if(stanza.isAccepted()) {
                 //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
                 //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
@@ -233,7 +239,10 @@ public class XMPPHandler extends DefaultHandler {
             InetSocketAddress hostAddress = new InetSocketAddress(CONNECT_SERVER, CONNECT_PORT);
             this.actualConnection.setServerChannel(SocketChannel.open(hostAddress));
         }
-        writeInChannel(s, this.actualConnection.getServerChannel());
+        String sss = new String(this.actualConnection.getReadBuffer().array(), "UTF-8");
+        System.out.println(sss);
+        System.out.println(s);
+        writeInChannel(sss, this.actualConnection.getServerChannel());
         this.actualConnection.getServerChannel().configureBlocking(false);
         this.actualConnection.getServerChannel().register(this.actualConnection.getSelector(), SelectionKey.OP_READ);
     }
@@ -267,7 +276,7 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     private void writeInChannel(String s, SocketChannel channel) {
-            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
+            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server", this.actualConnection);
     }
 
     /**

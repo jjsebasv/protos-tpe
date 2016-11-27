@@ -6,6 +6,7 @@ import ar.edu.itba.protos.Stanza.Stanza;
 
 import java.io.IOException;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -154,7 +155,7 @@ public class ConnectionImpl implements Connection {
      * @param message
      * @param toWhom
      */
-    public void processWrite(String message, String toWhom) {
+    public void processWrite(String message, String toWhom, ConnectionImpl connection) {
         SocketChannel channel;
         switch (toWhom) {
             case "server":
@@ -165,6 +166,16 @@ public class ConnectionImpl implements Connection {
                 channel = this.clientChannel;
                 break;
         }
+
+        String sss = null;
+
+        try {
+            sss = new String(connection.getReadBuffer().array(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(sss);
 
         this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
 
