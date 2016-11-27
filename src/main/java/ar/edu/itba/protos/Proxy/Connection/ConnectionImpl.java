@@ -152,10 +152,9 @@ public class ConnectionImpl implements Connection {
      *
      * Once that decision is made, it writes down the message to the corresponding channel
      *
-     * @param message
      * @param toWhom
      */
-    public void processWrite(String message, String toWhom, ConnectionImpl connection) {
+    public void processWrite(String toWhom) {
         SocketChannel channel;
         switch (toWhom) {
             case "server":
@@ -167,17 +166,6 @@ public class ConnectionImpl implements Connection {
                 break;
         }
 
-        String sss = null;
-
-        try {
-            sss = new String(connection.getReadBuffer().array(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(sss);
-
-        this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
 
         try {
             Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));

@@ -119,17 +119,12 @@ public class XMPPHandler extends DefaultHandler {
             this.actualConnection = (ConnectionImpl) key.attachment();
         }
 
-        boolean shouldSend = true;
-
-        ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
         this.actualConnection.onlyBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
-        this.actualConnection.setReadBuffer(ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
 
         SocketChannel channel = (SocketChannel) key.channel();
         int read = -1;
 
-        //read = channel.read(buffer);
-        read = channel.read(this.actualConnection.getReadBuffer());
+        read = channel.read(this.actualConnection.onlyBuffer);
 
         // TODO: What's the difference bet 0 and 1?
         if (read == -1) {
@@ -142,8 +137,7 @@ public class XMPPHandler extends DefaultHandler {
             Metrics.getInstance().addReceivedBytes(read);
 
             byte[] data = new byte[read];
-            //System.arraycopy(buffer.array(), 0, data, 0, read);
-            System.arraycopy(this.actualConnection.getReadBuffer().array(), 0, data, 0, read);
+            System.arraycopy(this.actualConnection.onlyBuffer.array(), 0, data, 0, read);
             String stringRead = new String(data);
 
             Stanza stanza = new Stanza(stringRead);
@@ -151,25 +145,19 @@ public class XMPPHandler extends DefaultHandler {
                 manageBlockAndConvert(stanza);
             }
 
-            String toSendString = stanza.getXml();
-
             logger.info("Message received: " + stringRead);
-            actualConnection.stanza = stanza;
+            this.actualConnection.stanza = stanza;
 
-
-            this.actualConnection.setReadBuffer(ByteBuffer.wrap(stanza.getXml().getBytes()));
-
-            String sss = new String(this.actualConnection.getReadBuffer().array(), "UTF-8");
-            System.out.println(sss);
+            this.actualConnection.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
 
             if(stanza.isAccepted()) {
                 //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
                 //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                handleSendMessage(toSendString, channel);
+                handleSendMessage(channel);
             }
 
         } else {
-            actualConnection.endConnection();
+            this.actualConnection.endConnection();
         }
     }
 
@@ -194,7 +182,7 @@ public class XMPPHandler extends DefaultHandler {
         System.out.println(s.substring(writeBuffer.position(), writeBuffer.limit()));
         System.out.println();
 
-        handleSendMessage(this.actualConnection.stanza.getXml(), (SocketChannel)key.channel());
+        handleSendMessage((SocketChannel)key.channel());
 
         /*
         try {
@@ -230,20 +218,16 @@ public class XMPPHandler extends DefaultHandler {
      * At this point we can be sure that no user is blocked in this channel and that the message
      * is already converted if demanded.
      *
-     * @param s
      * @throws IOException
      *
      */
-    public void sendToServer(String s) throws IOException {
+    public void sendToServer() throws IOException {
         if (this.actualConnection.getServerChannel() == null) {
             InetSocketAddress hostAddress = new InetSocketAddress(CONNECT_SERVER, CONNECT_PORT);
             this.actualConnection.setServerChannel(SocketChannel.open(hostAddress));
         }
-        String sss = new String(this.actualConnection.getReadBuffer().array(), "UTF-8");
-        System.out.println(sss);
-        System.out.println(s);
-        writeInChannel(sss, this.actualConnection.getServerChannel());
         this.actualConnection.getServerChannel().configureBlocking(false);
+        writeInChannel(this.actualConnection.getServerChannel());
         this.actualConnection.getServerChannel().register(this.actualConnection.getSelector(), SelectionKey.OP_READ);
     }
 
@@ -256,12 +240,11 @@ public class XMPPHandler extends DefaultHandler {
      * At this point we can be sure that no user is blocked in this channel and that the message
      * is already converted if demanded.
      *
-     * @param s
      * @throws IOException
      *
      */
-    public void sendToClient(String s) throws IOException {
-        writeInChannel(s, this.actualConnection.getClientChannel());
+    public void sendToClient() throws IOException {
+        writeInChannel(this.actualConnection.getClientChannel());
     }
 
     // Private functions
@@ -271,28 +254,26 @@ public class XMPPHandler extends DefaultHandler {
      *
      * Writes the specified message through the specified channel
      *
-     * @param s
      * @param channel
      *
      */
-    private void writeInChannel(String s, SocketChannel channel) {
-            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server", this.actualConnection);
+    private void writeInChannel(SocketChannel channel) {
+            this.actualConnection.processWrite(this.actualConnection.getClientChannel() == channel ? "client" : "server");
     }
 
     /**
      *
      * Decides whether the message should be sent to the server or to the client.
      *
-     * @param message
      * @param channel
      *
      */
-    private void handleSendMessage(String message, SocketChannel channel) {
+    private void handleSendMessage(SocketChannel channel) {
         try {
             if (channel == this.actualConnection.getServerChannel()) {
-                sendToClient(message);
+                sendToClient();
             } else {
-                sendToServer(message);
+                sendToServer();
             }
         } catch (IOException e) {
             logger.error("Error found in sending message");
@@ -303,7 +284,6 @@ public class XMPPHandler extends DefaultHandler {
     private void manageBlockAndConvert(Stanza stanza) {
 
         if(Conversor.applyLeet) {
-            // TODO: Should use Stanzas here?
             Conversor.convert(stanza);
         }
         stanza.setAccepted(!Blocker.apply(stanza.getXml()));
