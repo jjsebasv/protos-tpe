@@ -116,7 +116,7 @@ public class XMPPHandler extends DefaultHandler {
             key.cancel();
             return;
         } else if (read > 0) {
-            key.interestOps(SelectionKey.OP_WRITE);
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             Metrics.getInstance().addReceivedBytes(read);
 
             byte[] data = new byte[read];
@@ -130,10 +130,11 @@ public class XMPPHandler extends DefaultHandler {
 
             logger.info("Message received: " + stringRead);
             connection.stanza = stanza;
-
             connection.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
 
-            if(stanza.isAccepted()) {
+
+            if(!stanza.isAccepted()) {
+                //stanza.transformXml();
                 //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
                 //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                 //handleSendMessage(channel);
@@ -151,15 +152,25 @@ public class XMPPHandler extends DefaultHandler {
         SocketChannel clientChannel = connection.getClientChannel();
         SocketChannel serverChannel = connection.getServerChannel();
 
+        ByteBuffer writeBuffer = connection.onlyBuffer;
+
         if(!channel.equals(clientChannel) && !channel.equals(serverChannel) && channel.getRemoteAddress().equals(serverChannel.getRemoteAddress())) {
             connection.setServerChannel(serverChannel);
         }
 
-        handleSendMessage(key);
-        
+        if (!writeBuffer.hasRemaining()) {
+            writeBuffer.clear();
+            writeBuffer.flip();
+            if (!writeBuffer.hasRemaining()) {
+                key.interestOps(SelectionKey.OP_READ);
+                return;
+            }
+        }
 
-        key.interestOps(SelectionKey.OP_READ);
-        //((SocketChannel) key.channel()).write(writeBuffer);
+        handleSendMessage(key);
+        key.interestOps(connection.onlyBuffer.position() > 0 ? SelectionKey.OP_READ | SelectionKey.OP_WRITE : SelectionKey.OP_READ);
+
+        //key.interestOps(SelectionKey.OP_READ);
 
     }
 
@@ -253,7 +264,7 @@ public class XMPPHandler extends DefaultHandler {
         if(Conversor.applyLeet) {
             Conversor.convert(stanza);
         }
-        stanza.setAccepted(!Blocker.apply(stanza.getXml()));
+        stanza.setAccepted(!Blocker.apply(stanza));
     }
 
 }

@@ -68,12 +68,14 @@ public class AdminHandler extends DefaultHandler {
         AdminConnectionImpl adminConnection = new AdminConnectionImpl(newChannel);
         connections.put(newChannel, adminConnection);
 
-
         ConnectionImpl connection = new ConnectionImpl(selector);
 
         logger.info("Connected to: " + socket.getRemoteSocketAddress());
 
         config.put(newChannel, ByteBuffer.allocate(DEFAULT_BUFFER_SIZE));
+
+        newChannel.write(ByteBuffer.wrap("This is the Admin Manager\n".getBytes()));
+        newChannel.write(ByteBuffer.wrap("*************************\n".getBytes()));
         return keyChannel;
     }
 

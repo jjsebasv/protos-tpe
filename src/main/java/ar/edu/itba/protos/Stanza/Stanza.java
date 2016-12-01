@@ -14,6 +14,13 @@ public class Stanza {
     private boolean completed;
 
     private String body;
+    private String wholeFrom;
+    private String wholeTo;
+    private String from;
+    private String to;
+
+    private boolean blockFrom;
+    private boolean blockTo;
 
 
     public Stanza(String type, Element element) {
@@ -49,6 +56,13 @@ public class Stanza {
     }
     public void setAccepted(boolean accepted) { this.accepted = accepted; }
 
+    public void setBlockFrom (boolean block) {
+        this.blockFrom = block;
+    }
+    public void setBlockTo (boolean block) {
+        this.blockTo = block;
+    }
+
     public String getBody() {
         return this.body;
     }
@@ -78,6 +92,29 @@ public class Stanza {
             System.out.println("check this out: " + message);
             this.type = message.substring(1, message.indexOf(" ", 0));
         }
+
+        int fromInitial = message.indexOf("from='");
+        int toInitial = message.indexOf("to='");
+        if (fromInitial == -1) {
+            this.from = null;
+            this.wholeFrom = null;
+        } else {
+            int endingPoint = message.indexOf("'", fromInitial+6);
+            this.wholeFrom =  message.substring(fromInitial+6, endingPoint);
+            int middlePoint = this.wholeFrom.indexOf("/");
+            this.from = middlePoint == -1 ? this.wholeFrom : this.wholeFrom.substring(0, middlePoint);
+        }
+
+        if (toInitial == -1) {
+            this.to = null;
+            this.wholeTo = null;
+        } else {
+            int endingPoint = message.indexOf("'", toInitial+3);
+            this.wholeTo =  message.substring(toInitial+3, endingPoint);
+            int middlePoint = this.wholeTo.indexOf("/");
+            this.to = middlePoint == -1 ? this.wholeTo : this.wholeTo.substring(0, middlePoint);
+        }
+
     }
 
     public boolean isChat() {
@@ -85,7 +122,13 @@ public class Stanza {
     }
 
     public void replaceBody(String newBody) {
-        this.xml.replaceAll("<body>" + this.body + "</body>", "<body>" + newBody + "</body>");
+        this.setXml(this.xml.replaceAll("<body>" + this.body + "</body>", "<body>" + newBody + "</body>"));
     }
+
+    public void transformXml() {
+        this.setXml(this.xml.replaceAll("from='" + this.wholeFrom + "'", "from='" + this.wholeTo + "'"));
+        this.setXml(this.xml.replaceAll("to='" + this.wholeTo + "'", "to='" + this.wholeFrom + "'"));
+    }
+
 
 }

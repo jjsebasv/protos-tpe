@@ -114,9 +114,6 @@ public class SocketServer {
                         this.adminChannel = this.adminHandler.accept(key, this.selector);
                     } else {
                         xmppHandler.handleAccept(key);
-                        // FIXME
-                        //serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-                        //this.accept(key);
                     }
                 } else if (key.isReadable()) {
 

@@ -2,6 +2,7 @@ package ar.edu.itba.protos.Proxy.Filters;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
+import ar.edu.itba.protos.Stanza.Stanza;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,11 @@ public class Blocker {
         user, then the function returns true.
 
         @return whether the message should be blocked or not
-        @param s the xml string
+        @param stanza the whole stanza
      **/
 
-    public static boolean apply(String s) {
+    public static boolean apply(Stanza stanza) {
+        String s = stanza.getXml();
         String fromUser = null;
         String toUser = null;
 
@@ -50,6 +52,7 @@ public class Blocker {
             if (fromUser != null) {
                 if (user.equals(fromUser)) {
                     block(user);
+                    stanza.setBlockFrom(true);
                     return true;
                 }
             }
@@ -61,6 +64,7 @@ public class Blocker {
                 }
                 if (user.equals(toUser)) {
                     block(user);
+                    stanza.setBlockTo(true);
                     return true;
                 }
             }
