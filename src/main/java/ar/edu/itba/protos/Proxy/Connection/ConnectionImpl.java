@@ -164,7 +164,7 @@ public class ConnectionImpl implements Connection {
      *
      * @param toWhom
      */
-    public void processWrite(String toWhom) {
+    public void processWrite(String toWhom, boolean isAccepted) {
         SocketChannel channel;
         switch (toWhom) {
             case "server":
@@ -175,9 +175,13 @@ public class ConnectionImpl implements Connection {
                 channel = this.clientChannel;
                 break;
         }
-
-
         try {
+            if (!isAccepted) {
+                stanza.showBlockMessage();
+                stanza.transformXml();
+                this.onlyBuffer.clear();
+                this.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
+            }
             Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));
         } catch (IOException e) {
             // TODO: Handle Exception and log it

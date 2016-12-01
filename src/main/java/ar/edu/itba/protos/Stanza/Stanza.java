@@ -109,8 +109,8 @@ public class Stanza {
             this.to = null;
             this.wholeTo = null;
         } else {
-            int endingPoint = message.indexOf("'", toInitial+3);
-            this.wholeTo =  message.substring(toInitial+3, endingPoint);
+            int endingPoint = message.indexOf("'", toInitial+4);
+            this.wholeTo =  message.substring(toInitial+4, endingPoint);
             int middlePoint = this.wholeTo.indexOf("/");
             this.to = middlePoint == -1 ? this.wholeTo : this.wholeTo.substring(0, middlePoint);
         }
@@ -123,11 +123,21 @@ public class Stanza {
 
     public void replaceBody(String newBody) {
         this.setXml(this.xml.replaceAll("<body>" + this.body + "</body>", "<body>" + newBody + "</body>"));
+        this.body = newBody;
     }
 
     public void transformXml() {
-        this.setXml(this.xml.replaceAll("from='" + this.wholeFrom + "'", "from='" + this.wholeTo + "'"));
+        this.setXml(this.xml.replaceAll("from='" + this.wholeFrom + "'", "from='XMPP-ADMIN'"));
         this.setXml(this.xml.replaceAll("to='" + this.wholeTo + "'", "to='" + this.wholeFrom + "'"));
+    }
+
+    public void showBlockMessage() {
+        if (this.blockFrom) {
+            replaceBody("Your user is currently blocked. Please contact an admin to unblock it.");
+        }
+        if (this.blockTo) {
+            replaceBody("The user you are trying to contact (" + this.to + "), is currently blocked. Sorry");
+        }
     }
 
 

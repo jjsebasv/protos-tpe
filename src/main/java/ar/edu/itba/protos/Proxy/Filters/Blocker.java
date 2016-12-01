@@ -79,16 +79,16 @@ public class Blocker {
     }
 
     public static void remove(String s) {
-        if(blockedUsers.indexOf(s) >= 0){
-            s = s.replace("\n", "").replace("\r", "");
+        s = s.replace("\n", "").replace("\r", "");
+        if(blockedUsers.indexOf(s) >= 0) {
             logger.info("removing " + s + " from the blocking list");
             blockedUsers.remove(s);
         }
     }
 
     public static void add (String s) {
-        if(blockedUsers.indexOf(s) == -1){
-            s = s.replace("\n", "").replace("\r", "");
+        s = s.replace("\n", "").replace("\r", "");
+        if(blockedUsers.indexOf(s) == -1) {
             logger.info("adding " + s + " to the blocking list");
             blockedUsers.add(s);
         }

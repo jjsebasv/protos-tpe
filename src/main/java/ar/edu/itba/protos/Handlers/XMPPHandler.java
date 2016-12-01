@@ -195,7 +195,7 @@ public class XMPPHandler extends DefaultHandler {
             connection.setServerChannel(SocketChannel.open(hostAddress));
         }
         connection.getServerChannel().configureBlocking(false);
-        connection.processWrite("server");
+        connection.processWrite("server", connection.stanza.isAccepted());
         //writeInChannel(connection.getServerChannel());
         SelectionKey serverKey = connection.getServerChannel().register(connection.getSelector(), SelectionKey.OP_READ);
         serverKey.attach(connection);
@@ -216,7 +216,7 @@ public class XMPPHandler extends DefaultHandler {
      */
     public void sendToClient(SelectionKey key) throws IOException {
         ConnectionImpl connection = (ConnectionImpl) key.attachment();
-        connection.processWrite("client");
+        connection.processWrite("client", connection.stanza.isAccepted());
         //writeInChannel(connection.getClientChannel());
     }
 
