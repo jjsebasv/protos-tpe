@@ -2,9 +2,11 @@ package ar.edu.itba.protos.Proxy.Connection;
 
 import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
+import ar.edu.itba.protos.Stanza.Stanza;
 
 import java.io.IOException;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -15,6 +17,8 @@ import java.nio.channels.SocketChannel;
  * Created by sebastian on 10/9/16.
  */
 public class ConnectionImpl implements Connection {
+
+    private static final int DEFAULT_BUFFER_SIZE = 1024*100;
 
     private Selector selector;
 
@@ -34,10 +38,14 @@ public class ConnectionImpl implements Connection {
 
     public ByteBuffer onlyBuffer;
 
+    public Stanza stanza;
+
     private XmppLogger logger = XmppLogger.getInstance();
 
     public ConnectionImpl(Selector selector) {
+
         this.selector = selector;
+        this.onlyBuffer = ByteBuffer.wrap(new byte[DEFAULT_BUFFER_SIZE]);
     }
 
     /**
@@ -96,7 +104,10 @@ public class ConnectionImpl implements Connection {
     }
 
     public SelectionKey getClientKey() {
-        return this.clientKey;
+        if (this.clientChannel.keyFor(this.selector) == null) {
+            return null;
+        }
+        return this.clientChannel.keyFor(this.selector);
     }
 
     public void setClientKey(SelectionKey key) {
@@ -104,7 +115,10 @@ public class ConnectionImpl implements Connection {
     }
 
     public SelectionKey getServerKey() {
-        return this.serverKey;
+        if (this.serverChannel.keyFor(this.selector) == null) {
+            return null;
+        }
+        return this.serverChannel.keyFor(this.selector);
     }
 
     public void setClientChannel(SocketChannel channel) {
@@ -148,10 +162,9 @@ public class ConnectionImpl implements Connection {
      *
      * Once that decision is made, it writes down the message to the corresponding channel
      *
-     * @param message
      * @param toWhom
      */
-    public void processWrite(String message, String toWhom) {
+    public void processWrite(String toWhom, boolean isAccepted) {
         SocketChannel channel;
         switch (toWhom) {
             case "server":
@@ -162,10 +175,13 @@ public class ConnectionImpl implements Connection {
                 channel = this.clientChannel;
                 break;
         }
-
-        this.onlyBuffer = ByteBuffer.wrap(message.getBytes());
-
         try {
+            if (!isAccepted) {
+                stanza.showBlockMessage();
+                stanza.transformXml();
+                this.onlyBuffer.clear();
+                this.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
+            }
             Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));
         } catch (IOException e) {
             // TODO: Handle Exception and log it

@@ -30,12 +30,17 @@ public class SocketServer {
 
     Map<SocketChannel, ConnectionImpl> connections = new HashMap<>();
 
-    
+    /*
+        The Proxy will be hosted in localhost:5225
+        The Server will be hosted in args[0]:args[1]
+            Default settings: protos-tpe:5228
+        The Admin will be hosted in localhost:5224
+     */
     public static void main(String[] args) throws Exception {
 
         Runnable server = () -> {
             try {
-                new SocketServer("localhost", 5225).startServer();
+                new SocketServer("localhost", 5225, args[0], Integer.parseInt(args[1])).startServer();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -54,10 +59,10 @@ public class SocketServer {
      * @throws IOException
      *
      */
-    public SocketServer(String address, int port) throws IOException {
+    public SocketServer(String address, int port, String connect_server, int connect_port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
         this.selector = Selector.open();
-        this.xmppHandler = new XMPPHandler(this.selector);
+        this.xmppHandler = new XMPPHandler(this.selector, connect_port, connect_server);
 
         // Starting admin
         this.adminChannel = ServerSocketChannel.open();
@@ -82,10 +87,9 @@ public class SocketServer {
         System.out.println("Server started...");
 
         serverChannel = ServerSocketChannel.open();
+        serverChannel.socket().bind(listenAddress);
         serverChannel.configureBlocking(false);
 
-        // retrieve server socket and bind to port
-        serverChannel.socket().bind(listenAddress);
         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
 
@@ -104,23 +108,23 @@ public class SocketServer {
                 if (!key.isValid()) {
                     continue;
                 }
-                // FIXME: Check for different connections
                 if (key.isAcceptable()) {
 
                     if (key.channel() == this.adminChannel){
                         this.adminChannel = this.adminHandler.accept(key, this.selector);
                     } else {
-                        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-                        this.accept(key, this.selector);
+                        xmppHandler.handleAccept(key);
                     }
                 } else if (key.isReadable()) {
 
                     if (((SocketChannel)key.channel()).getLocalAddress().equals(this.adminChannel.getLocalAddress())){
-                        System.out.println("something");
                         this.adminHandler.read(key);
                     } else {
                         xmppHandler.read(key);
                     }
+                } else if (key.isWritable()) {
+                    System.out.println(key);
+                    xmppHandler.write(key);
                 }
             }
         }
@@ -131,14 +135,14 @@ public class SocketServer {
     /**
      *
      * Accepts the newly requested connection through the acceptable key.
+     * It uses the selector inside the key.
      *
      * @param key
-     * @param selector
      * @throws IOException
      */
-    private void accept(SelectionKey key, Selector selector) throws IOException{
+    private void accept(SelectionKey key) throws IOException{
 
-        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key, selector));
+        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key));
         key.attach(actualConnection);
 
         connections.put(actualConnection.getClientChannel(), actualConnection);
