@@ -18,6 +18,8 @@ import java.nio.channels.SocketChannel;
  */
 public class ConnectionImpl implements Connection {
 
+    private static final int DEFAULT_BUFFER_SIZE = 1024*100;
+
     private Selector selector;
 
     private SocketChannel clientChannel;
@@ -41,7 +43,9 @@ public class ConnectionImpl implements Connection {
     private XmppLogger logger = XmppLogger.getInstance();
 
     public ConnectionImpl(Selector selector) {
+
         this.selector = selector;
+        this.onlyBuffer = ByteBuffer.wrap(new byte[DEFAULT_BUFFER_SIZE]);
     }
 
     /**

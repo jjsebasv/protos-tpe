@@ -87,10 +87,9 @@ public class SocketServer {
         System.out.println("Server started...");
 
         serverChannel = ServerSocketChannel.open();
+        serverChannel.socket().bind(listenAddress);
         serverChannel.configureBlocking(false);
 
-        // retrieve server socket and bind to port
-        serverChannel.socket().bind(listenAddress);
         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
 
@@ -109,19 +108,19 @@ public class SocketServer {
                 if (!key.isValid()) {
                     continue;
                 }
-                // FIXME: Check for different connections
                 if (key.isAcceptable()) {
 
                     if (key.channel() == this.adminChannel){
                         this.adminChannel = this.adminHandler.accept(key, this.selector);
                     } else {
-                        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-                        this.accept(key, this.selector);
+                        xmppHandler.handleAccept(key);
+                        // FIXME
+                        //serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+                        //this.accept(key);
                     }
                 } else if (key.isReadable()) {
 
                     if (((SocketChannel)key.channel()).getLocalAddress().equals(this.adminChannel.getLocalAddress())){
-                        System.out.println("something");
                         this.adminHandler.read(key);
                     } else {
                         xmppHandler.read(key);
@@ -139,14 +138,14 @@ public class SocketServer {
     /**
      *
      * Accepts the newly requested connection through the acceptable key.
+     * It uses the selector inside the key.
      *
      * @param key
-     * @param selector
      * @throws IOException
      */
-    private void accept(SelectionKey key, Selector selector) throws IOException{
+    private void accept(SelectionKey key) throws IOException{
 
-        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key, selector));
+        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key));
         key.attach(actualConnection);
 
         connections.put(actualConnection.getClientChannel(), actualConnection);
