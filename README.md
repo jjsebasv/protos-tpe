@@ -6,10 +6,7 @@ Clone repository or download
 
 Execute:
 
-mvn install
-
-mvn exec:java -Dexec.mainClass="ar.edu.itba.protos.Server.SocketServer"
-
+`java -cp xmpp_proxy_jar/xmpp-proxy.jar ar.edu.itba.protos.Server.SocketServer [server] [port]`
 
 ## Test Plan
  * Descargar Prosody (Server)
@@ -32,3 +29,9 @@ mvn exec:java -Dexec.mainClass="ar.edu.itba.protos.Server.SocketServer"
  * Conectar el usuario al proxy y un usuario directamente al server
  * Agregar un buddy
  * Empezar a hablar
+ 
+## Gerenate jar - Recrear
+ * Borrar la carpeta target
+ * `mvn clean`
+ * `mvn install` crea en la carpeta target los `.jar`
+ * Correr el siguiente comando `java -cp target/xmpp-proxy-0.0.1-SNAPSHOT-jar-with-dependencies.jar ar.edu.itba.protos.Server.SocketServer [server] [port]`
