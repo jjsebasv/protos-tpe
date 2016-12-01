@@ -1,5 +1,16 @@
 # protos-tpe
 
+## Installation and execution
+
+Clone repository or download
+
+Execute:
+
+mvn install
+
+mvn exec:java -Dexec.mainClass="ar.edu.itba.protos.Server.SocketServer"
+
+
 ## Test Plan
  * Descargar Prosody (Server)
  * Descargar Pidgin (Client)
@@ -21,4 +32,3 @@
  * Conectar el usuario al proxy y un usuario directamente al server
  * Agregar un buddy
  * Empezar a hablar
- 

@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.Proxy.Filters;
 
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
+import ar.edu.itba.protos.Stanza.Stanza;
 
 /**
  * Created by sebastian on 10/16/16.
@@ -28,6 +29,11 @@ public class Conversor {
         StringBuffer newBody = apply(body);
 
         return s.substring(0,bodyStartIndex+7) +  newBody.toString() + s.substring(bodyEndIndex);
+    }
+
+    public static void convert(Stanza stanza) {
+        StringBuffer newBody = apply(stanza.getBody());
+        stanza.replaceBody(newBody.toString());
     }
 
 

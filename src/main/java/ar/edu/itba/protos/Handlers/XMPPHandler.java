@@ -8,9 +8,6 @@ import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import ar.edu.itba.protos.Proxy.Metrics.Metrics;
 import ar.edu.itba.protos.Stanza.Stanza;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
@@ -21,6 +18,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,21 +33,20 @@ public class XMPPHandler extends DefaultHandler {
      * Is needed to add 'protos-server' to de hosts file
      * Relate it to localhost (it's just a name) -> We could change it
      */
-    private static final int CONNECT_PORT = 5228;
-    private static final String CONNECT_SERVER = "protos-tpe";
+    private static int CONNECT_PORT;
+    private static String CONNECT_SERVER;
 
     private static final int DEFAULT_BUFFER_SIZE = 1024*100;
 
     public List<Stanza> stanzas = new LinkedList<>();;
     public Stanza actualStanza = null;
 
-    private ConnectionImpl actualConnection;
-
 
     XmppLogger logger = XmppLogger.getInstance();
 
-    public XMPPHandler(Selector selector) {
-        this.actualConnection = new ConnectionImpl(selector);
+    public XMPPHandler(Selector selector, int port, String server) {
+        this.CONNECT_PORT = port;
+        this.CONNECT_SERVER = server;
     }
 
 
@@ -61,13 +58,13 @@ public class XMPPHandler extends DefaultHandler {
     *
     * Registers the key with a ConnectionImpl that afterwards will be accessed by the
     * attachment field.
+    * It uses the selector inside the key.
     *
     * @param key
-    * @param selector
     *
     */
-    public Connection handleAccept(SelectionKey key, Selector selector) throws IOException {
-        ConnectionImpl connection = new ConnectionImpl(selector);
+    public Connection handleAccept(SelectionKey key) throws IOException {
+        ConnectionImpl connection = new ConnectionImpl(key.selector());
         Metrics.getInstance().addAccess();
 
         System.out.println("TESTER: " +  ((ServerSocketChannel)key.channel()).socket().getLocalSocketAddress());
@@ -76,24 +73,15 @@ public class XMPPHandler extends DefaultHandler {
         SocketChannel clientChannel = serverSocketChannel.accept();
         Socket socket = clientChannel.socket();
 
-        // FIXME: This should be logged
         logger.info("Connected to: " + socket.getRemoteSocketAddress());
 
-         /*
-         * Why do we configureBlocking(false)?
-         * ------
-         * A ServerSocketChannel can be set into non-blocking mode.
-         * In non-blocking mode the accept() method returns immediately, and may thus return null, if no incoming connection had arrived.
-         * Therefore we will have to check if the returned SocketChannel is null.
-         */
         clientChannel.configureBlocking(false);
-
-        // Why does it doesn't accept OP_ACCEPT
-        clientChannel.register(key.selector(), SelectionKey.OP_READ, connection);
 
         connection.setClientChannel(clientChannel);
         connection.setClientKey(key);
 
+        SelectionKey clientKey = clientChannel.register(key.selector(), SelectionKey.OP_READ | SelectionKey.OP_WRITE, connection);
+        clientKey.attach(connection);
         return connection;
     }
 
@@ -113,20 +101,13 @@ public class XMPPHandler extends DefaultHandler {
      *
      */
     public void read(SelectionKey key) throws IOException {
-
-        if (key.attachment() != null) {
-            this.actualConnection = (ConnectionImpl) key.attachment();
-        }
-
-
-        boolean shouldSend = true;
-
-        ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
+        ConnectionImpl connection = (ConnectionImpl) key.attachment();
 
         SocketChannel channel = (SocketChannel) key.channel();
         int read = -1;
 
-        read = channel.read(buffer);
+        connection.onlyBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);;
+        read = channel.read(connection.onlyBuffer);
 
         // TODO: What's the difference bet 0 and 1?
         if (read == -1) {
@@ -134,28 +115,62 @@ public class XMPPHandler extends DefaultHandler {
             channel.close();
             key.cancel();
             return;
+        } else if (read > 0) {
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+            Metrics.getInstance().addReceivedBytes(read);
+
+            byte[] data = new byte[read];
+            System.arraycopy(connection.onlyBuffer.array(), 0, data, 0, read);
+            String stringRead = new String(data);
+
+            Stanza stanza = new Stanza(stringRead);
+            if (stanza.isChat()) {
+                manageBlockAndConvert(stanza);
+            }
+
+            logger.info("Message received: " + stringRead);
+            connection.stanza = stanza;
+            connection.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
+
+
+            if(!stanza.isAccepted()) {
+                //stanza.transformXml();
+                //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
+                //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                //handleSendMessage(channel);
+            }
+
+        } else {
+            connection.endConnection();
+        }
+    }
+
+    public void write(SelectionKey key) throws IOException {
+        ConnectionImpl connection = (ConnectionImpl) key.attachment();
+
+        SocketChannel channel = (SocketChannel) key.channel();
+        SocketChannel clientChannel = connection.getClientChannel();
+        SocketChannel serverChannel = connection.getServerChannel();
+
+        ByteBuffer writeBuffer = connection.onlyBuffer;
+
+        if(!channel.equals(clientChannel) && !channel.equals(serverChannel) && channel.getRemoteAddress().equals(serverChannel.getRemoteAddress())) {
+            connection.setServerChannel(serverChannel);
         }
 
-        Metrics.getInstance().addReceivedBytes(read);
-        byte[] data = new byte[read];
-        System.arraycopy(buffer.array(), 0, data, 0, read);
-        String stringRead = new String(data);
-        String toSendString = stringRead;
-        logger.info("Message received: " + stringRead);
-
-        if(Conversor.applyLeet) {
-            // TODO: Should use Stanzas here?
-            String auxiliar = Conversor.findAndConvert(stringRead);
-            if (auxiliar != null) {
-              toSendString = auxiliar;
+        if (!writeBuffer.hasRemaining()) {
+            writeBuffer.clear();
+            writeBuffer.flip();
+            if (!writeBuffer.hasRemaining()) {
+                key.interestOps(SelectionKey.OP_READ);
+                return;
             }
         }
 
-        shouldSend = !Blocker.apply(stringRead.toString());
+        handleSendMessage(key);
+        key.interestOps(connection.onlyBuffer.position() > 0 ? SelectionKey.OP_READ | SelectionKey.OP_WRITE : SelectionKey.OP_READ);
 
-        if(shouldSend) {
-            handleSendMessage(toSendString, channel);
-        }
+        //key.interestOps(SelectionKey.OP_READ);
 
     }
 
@@ -169,18 +184,21 @@ public class XMPPHandler extends DefaultHandler {
      * At this point we can be sure that no user is blocked in this channel and that the message
      * is already converted if demanded.
      *
-     * @param s
+     * @param key
      * @throws IOException
      *
      */
-    public void sendToServer(String s) throws IOException {
-        if (this.actualConnection.getServerChannel() == null) {
+    public void sendToServer(SelectionKey key) throws IOException {
+        ConnectionImpl connection = (ConnectionImpl) key.attachment();
+        if (connection.getServerChannel() == null) {
             InetSocketAddress hostAddress = new InetSocketAddress(CONNECT_SERVER, CONNECT_PORT);
-            this.actualConnection.setServerChannel(SocketChannel.open(hostAddress));
+            connection.setServerChannel(SocketChannel.open(hostAddress));
         }
-        writeInChannel(s, this.actualConnection.getServerChannel());
-        this.actualConnection.getServerChannel().configureBlocking(false);
-        this.actualConnection.getServerChannel().register(this.actualConnection.getSelector(), SelectionKey.OP_READ);
+        connection.getServerChannel().configureBlocking(false);
+        connection.processWrite("server", connection.stanza.isAccepted());
+        //writeInChannel(connection.getServerChannel());
+        SelectionKey serverKey = connection.getServerChannel().register(connection.getSelector(), SelectionKey.OP_READ);
+        serverKey.attach(connection);
     }
 
     /**
@@ -192,12 +210,14 @@ public class XMPPHandler extends DefaultHandler {
      * At this point we can be sure that no user is blocked in this channel and that the message
      * is already converted if demanded.
      *
-     * @param s
+     * @param key
      * @throws IOException
      *
      */
-    public void sendToClient(String s) throws IOException {
-        writeInChannel(s, this.actualConnection.getClientChannel());
+    public void sendToClient(SelectionKey key) throws IOException {
+        ConnectionImpl connection = (ConnectionImpl) key.attachment();
+        connection.processWrite("client", connection.stanza.isAccepted());
+        //writeInChannel(connection.getClientChannel());
     }
 
     // Private functions
@@ -207,33 +227,44 @@ public class XMPPHandler extends DefaultHandler {
      *
      * Writes the specified message through the specified channel
      *
-     * @param s
      * @param channel
      *
      */
-    private void writeInChannel(String s, SocketChannel channel) {
-            this.actualConnection.processWrite(s, this.actualConnection.getClientChannel() == channel ? "client" : "server");
+
+    /* FIXME or REMOVE
+    private void writeInChannel(SocketChannel channel) {
+        this.actualConnection.processWrite(this.actualConnection.getClientChannel() == channel ? "client" : "server");
     }
+    */
 
     /**
      *
-     * Decides wheter the message should be sent to the server or to the client.
+     * Decides whether the message should be sent to the server or to the client.
      *
-     * @param message
-     * @param channel
+     * @param key
      *
      */
-    private void handleSendMessage(String message, SocketChannel channel) {
+    private void handleSendMessage(SelectionKey key) {
+        ConnectionImpl connection = (ConnectionImpl) key.attachment();
+        SocketChannel channel = (SocketChannel) key.channel();
         try {
-            if (channel == this.actualConnection.getServerChannel()) {
-                sendToClient(message);
+            if (channel == connection.getServerChannel()) {
+                sendToClient(key);
             } else {
-                sendToServer(message);
+                sendToServer(key);
             }
         } catch (IOException e) {
             logger.error("Error found in sending message");
         }
 
+    }
+
+    private void manageBlockAndConvert(Stanza stanza) {
+
+        if(Conversor.applyLeet) {
+            Conversor.convert(stanza);
+        }
+        stanza.setAccepted(!Blocker.apply(stanza));
     }
 
 }
