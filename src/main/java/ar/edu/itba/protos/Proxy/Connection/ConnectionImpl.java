@@ -177,8 +177,11 @@ public class ConnectionImpl implements Connection {
         }
         try {
             if (!isAccepted) {
+                String oldxml = stanza.getXml();
                 stanza.showBlockMessage();
                 stanza.transformXml();
+                String newxml = stanza.getXml();
+                System.out.println("********************************** " + oldxml.equals(newxml));
                 this.onlyBuffer.clear();
                 this.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
             }

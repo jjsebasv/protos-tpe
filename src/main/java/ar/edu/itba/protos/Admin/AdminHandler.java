@@ -3,6 +3,7 @@ package ar.edu.itba.protos.Admin;
 import ar.edu.itba.protos.Logger.XmppLogger;
 import ar.edu.itba.protos.Proxy.Connection.AdminConnectionImpl;
 import ar.edu.itba.protos.Proxy.Connection.ConnectionImpl;
+import ar.edu.itba.protos.Proxy.Filters.Blocker;
 import ar.edu.itba.protos.Proxy.Filters.Conversor;
 import java.io.IOException;
 import java.net.Socket;
@@ -179,6 +180,18 @@ public class AdminHandler extends DefaultHandler {
                 break;
             case 17:
                 channel.write(ByteBuffer.wrap(String.format("OK, [Metrics] Number of converted characters: %d\n", Metrics.getInstance().getConvertedCharacters()).getBytes()));
+                break;
+            case 18:
+                ArrayList<String> blockedUsers = (ArrayList<String>) Blocker.getBlockedUsers();
+                if (blockedUsers.size() == 0) {
+                    channel.write(ByteBuffer.wrap("OK, There are no blocked users\n".getBytes()));
+                } else {
+                    channel.write(ByteBuffer.wrap("OK, The following users are blocked:\n".getBytes()));
+                    for (String user :
+                            blockedUsers) {
+                        channel.write(ByteBuffer.wrap(("- " + user + "\n").getBytes()));
+                    }
+                }
                 break;
             case -2: // You are not logged in
                 channel.write(ByteBuffer.wrap("ERROR, You're not logged in!\n".getBytes()));
