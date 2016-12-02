@@ -108,6 +108,8 @@ public class AdminParser {
                 return 16;
             case "CHARACTERS_CONVERTED\n":
                 return 17;
+            case "GET_BLOCKED_USERS\n":
+                return 18;
             default:
                 return -1;
 

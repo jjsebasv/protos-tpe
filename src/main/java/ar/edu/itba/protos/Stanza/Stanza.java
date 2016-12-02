@@ -77,17 +77,19 @@ public class Stanza {
 
         int typeIndex = message.indexOf("type='");
         if (typeIndex >= 0) {
-            this.type = message.substring(typeIndex+6, message.indexOf("'", typeIndex+6));
+            this.type = message.substring(typeIndex + 6, message.indexOf("'", typeIndex + 6));
 
             if (this.type.equals("chat")) {
                 int bodyBeggins = message.indexOf("<body>");
                 int bodyEnds = message.indexOf("</body>");
                 if (bodyBeggins >= 0 && bodyEnds >= 0) {
-                    this.body = message.substring(bodyBeggins+6, bodyEnds);
+                    this.body = message.substring(bodyBeggins + 6, bodyEnds);
                 }
             }
         } else if (message.equals("</stream:stream>")) {
             this.type = "CLOSE";
+        } else if (message.length() == 0){
+            this.type = "Empty";
         } else {
             System.out.println("check this out: " + message);
             this.type = message.substring(1, message.indexOf(" ", 0));
