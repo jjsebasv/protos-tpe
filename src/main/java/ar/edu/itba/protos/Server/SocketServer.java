@@ -29,7 +29,7 @@ public class SocketServer {
     XMPPHandler xmppHandler;
 
     Map<SocketChannel, ConnectionImpl> connections = new HashMap<>();
-    
+
     public static void main(String[] args) throws Exception {
 
         Runnable server = () -> {
