@@ -29,13 +29,7 @@ public class SocketServer {
     XMPPHandler xmppHandler;
 
     Map<SocketChannel, ConnectionImpl> connections = new HashMap<>();
-
-    /*
-        The Proxy will be hosted in localhost:5225
-        The Server will be hosted in args[0]:args[1]
-            Default settings: protos-tpe:5228
-        The Admin will be hosted in localhost:5224
-     */
+    
     public static void main(String[] args) throws Exception {
 
         Runnable server = () -> {

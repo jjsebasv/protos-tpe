@@ -207,7 +207,6 @@ public class XMPPHandler extends DefaultHandler {
     public void sendToClient(SelectionKey key) throws IOException {
         ConnectionImpl connection = (ConnectionImpl) key.attachment();
         connection.processWrite("client", connection.stanza.isAccepted());
-        //writeInChannel(connection.getClientChannel());
     }
 
     // Private functions

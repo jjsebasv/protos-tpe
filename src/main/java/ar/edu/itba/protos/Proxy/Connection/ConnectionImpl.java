@@ -146,13 +146,11 @@ public class ConnectionImpl implements Connection {
                 stanza.showBlockMessage();
                 stanza.transformXml();
                 String newxml = stanza.getXml();
-                System.out.println("********************************** " + oldxml.equals(newxml));
                 this.onlyBuffer.clear();
                 this.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
             }
             Metrics.getInstance().addTransferedBytes(channel.write(this.onlyBuffer));
         } catch (IOException e) {
-            // TODO: Handle Exception and log it
             logger.error("Error while writing");
             System.out.println(e);
         }
