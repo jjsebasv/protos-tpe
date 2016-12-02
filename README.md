@@ -4,9 +4,9 @@
 
 Clone repository or download
 
-Execute:
-
-`java -jar xmpp-proxy-0.0.1-SNAPSHOT-jar-with-dependencies.jar [server] [port]`
+* Ejecutar el siguiente comando (si posee el jar)
+    `java -jar xmpp-proxy.jar [server] [port]`
+* Si no posee el jar, generelo (ver instrucciones abajo).
 
 ## Test Plan
  * Descargar Prosody (Server)
@@ -31,6 +31,5 @@ Execute:
  * Empezar a hablar
  
 ## Generate jar - Recrear
- * `mvn clean`
- * `mvn install` crea en la carpeta target los `.jar`
- * Correr el siguiente comando `java -jar target/xmpp-proxy-0.0.1-SNAPSHOT-jar-with-dependencies.jar [server] [port]`
+ * Correr el script `jar-generator.sh`
+   * El mismo creara un jar `xmpp-proxy-0.0.1-SNAPSHOT-jar-with-dependencies.jar` en la carpeta target y lo copiara en la root del proyecto renombrandolo a `xmpp-proxy.jar`
