@@ -44,7 +44,6 @@ public class AdminHandler extends DefaultHandler {
     public void setChannel(ServerSocketChannel channel) {
         this.channel = channel;
     }
-    public void setSelector(Selector selector) { this.selector = selector; }
 
     /**
      * Handles incoming connections to admin port.
@@ -63,8 +62,6 @@ public class AdminHandler extends DefaultHandler {
         SocketChannel newChannel = keyChannel.accept();
         newChannel.configureBlocking(false);
         Socket socket = newChannel.socket();
-        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-        SocketAddress localAddr = socket.getLocalSocketAddress();
         newChannel.register(selector, SelectionKey.OP_READ);
         AdminConnectionImpl adminConnection = new AdminConnectionImpl(newChannel);
         connections.put(newChannel, adminConnection);
@@ -104,7 +101,6 @@ public class AdminHandler extends DefaultHandler {
 
         byte[] data = new byte[read];
         System.arraycopy(buffer.array(), 0, data, 0, read);
-        String stringRead = new String(data);
 
         int response = parser.parseCommand(buffer, bytesRead, this.logged);
         switch (response) {
@@ -208,31 +204,10 @@ public class AdminHandler extends DefaultHandler {
                 channel.write(ByteBuffer.wrap("ERROR, Wrong command\n".getBytes()));
                 buffer.clear();
                 break;
-                /*                 logger.error("Lost connection with the admin");
-                channel.close();
-                key.cance
-                l();
-                return;
-                */
         }
         buffer.clear();
         return;
     }
 
-    /**
-     * Handles write operations.
-     *
-     * Gets the buffer from the ChannelBuffers object and writes directly into
-     * it.
-     *
-     */
-
-    public void write(SelectionKey key) throws IOException {
-        SocketChannel s = (SocketChannel) key.channel();
-        ByteBuffer wrBuffer = config.get(s);
-        wrBuffer.flip();
-        s.write(wrBuffer);
-        wrBuffer.compact();
-    }
 
 }

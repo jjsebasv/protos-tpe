@@ -7,11 +7,9 @@ import ar.edu.itba.protos.Proxy.Elements.Element;
  */
 public class Stanza {
 
-    private Element element;
     private String xml;
     private String type;
     private boolean accepted;
-    private boolean completed;
 
     private String body;
     private String wholeFrom;
@@ -23,32 +21,12 @@ public class Stanza {
     private boolean blockTo;
 
 
-    public Stanza(String type, Element element) {
-        this.accepted = true;
-        this.completed = false;
-
-        this.type = type;
-        this.element = element;
-    }
-
     public String getXml() {
         return this.xml;
     }
 
     public void setXml(String xml) {
         this.xml = xml;
-    }
-
-    public void reject() {
-        this.accepted = false;
-    }
-
-    public void finish() {
-        this.completed = true;
-    }
-
-    public boolean isCompleted() {
-        return this.completed;
     }
 
     public boolean isAccepted() {
@@ -65,10 +43,6 @@ public class Stanza {
 
     public String getBody() {
         return this.body;
-    }
-
-    public Element getElement() {
-        return this.element;
     }
 
     public Stanza (String message) {

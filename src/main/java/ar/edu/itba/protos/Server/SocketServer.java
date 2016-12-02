@@ -98,8 +98,6 @@ public class SocketServer {
             if (this.selector.select(3000) == 0) {
                 continue;
             }
-            SelectionKey actualKey = null;
-            //work on selected keys
             Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
             while (keys.hasNext()) {
                 SelectionKey key = keys.next();
@@ -130,23 +128,5 @@ public class SocketServer {
         }
     }
 
-
-
-    /**
-     *
-     * Accepts the newly requested connection through the acceptable key.
-     * It uses the selector inside the key.
-     *
-     * @param key
-     * @throws IOException
-     */
-    private void accept(SelectionKey key) throws IOException{
-
-        ConnectionImpl actualConnection = ((ConnectionImpl)xmppHandler.handleAccept(key));
-        key.attach(actualConnection);
-
-        connections.put(actualConnection.getClientChannel(), actualConnection);
-
-    }
 
 }

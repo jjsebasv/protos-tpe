@@ -6,7 +6,6 @@ import ar.edu.itba.protos.Stanza.Stanza;
 
 import java.io.IOException;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -68,24 +67,6 @@ public class ConnectionImpl implements Connection {
         }
     }
 
-    /**
-     * Sets the server name
-     *
-     * @param serverName
-     */
-    public void setServerName(String serverName) {
-        this.serverName = serverName;
-    }
-
-    /**
-     * Sets the client name
-     *
-     * @param clientName
-     */
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
-    }
-
 
     public ByteBuffer getWriteBuffer() {
         return this.writeBuffer;
@@ -135,22 +116,6 @@ public class ConnectionImpl implements Connection {
 
     public void setServerChannel(SocketChannel channel) {
         this.serverChannel = channel;
-    }
-
-    public String getServerName() {
-        return this.serverName;
-    }
-
-    public void enableLeet() {
-        this.applyLeet = true;
-    }
-
-    public void disableLeet() {
-        this.applyLeet = false;
-    }
-
-    public boolean applyLeet() {
-        return this.applyLeet;
     }
 
     public Selector getSelector() {

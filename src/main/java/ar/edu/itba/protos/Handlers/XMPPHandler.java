@@ -132,14 +132,6 @@ public class XMPPHandler extends DefaultHandler {
             connection.stanza = stanza;
             connection.onlyBuffer = ByteBuffer.wrap(stanza.getXml().getBytes());
 
-
-            if(!stanza.isAccepted()) {
-                //stanza.transformXml();
-                //System.arraycopy(buffer.array(), 0, actualConnection.onlyBuffer, 0, read);
-                //key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                //handleSendMessage(channel);
-            }
-
         } else {
             connection.endConnection();
         }
@@ -170,7 +162,6 @@ public class XMPPHandler extends DefaultHandler {
         handleSendMessage(key);
         key.interestOps(connection.onlyBuffer.position() > 0 ? SelectionKey.OP_READ | SelectionKey.OP_WRITE : SelectionKey.OP_READ);
 
-        //key.interestOps(SelectionKey.OP_READ);
 
     }
 
@@ -196,7 +187,7 @@ public class XMPPHandler extends DefaultHandler {
         }
         connection.getServerChannel().configureBlocking(false);
         connection.processWrite("server", connection.stanza.isAccepted());
-        //writeInChannel(connection.getServerChannel());
+
         SelectionKey serverKey = connection.getServerChannel().register(connection.getSelector(), SelectionKey.OP_READ);
         serverKey.attach(connection);
     }
@@ -221,21 +212,6 @@ public class XMPPHandler extends DefaultHandler {
     }
 
     // Private functions
-
-
-    /**
-     *
-     * Writes the specified message through the specified channel
-     *
-     * @param channel
-     *
-     */
-
-    /* FIXME or REMOVE
-    private void writeInChannel(SocketChannel channel) {
-        this.actualConnection.processWrite(this.actualConnection.getClientChannel() == channel ? "client" : "server");
-    }
-    */
 
     /**
      *
