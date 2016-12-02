@@ -18,6 +18,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -119,10 +121,7 @@ public class XMPPHandler extends DefaultHandler {
             key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
             Metrics.getInstance().addReceivedBytes(read);
 
-            byte[] data = new byte[read];
-            System.arraycopy(connection.onlyBuffer.array(), 0, data, 0, read);
-            String stringRead = new String(data);
-
+            String stringRead = new String(connection.onlyBuffer.array(), 0, read, StandardCharsets.UTF_8);
             Stanza stanza = new Stanza(stringRead);
             if (stanza.isChat()) {
                 manageBlockAndConvert(stanza);
